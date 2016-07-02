@@ -1,0 +1,17 @@
+[package]
+name = "rukyll"
+version = "0.1.0"
+authors = ["Eric Dattore <edattore@gmail.com>"]
+
+[lib]
+name = "rukyll"
+path = "src/lib.rs"
+test = true
+
+[[bin]]
+name = "rukyll"
+path = "src/main.rs"
+test = true
+
+[dependencies]
+toml = "0.1.30"
