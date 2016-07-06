@@ -14,4 +14,3 @@ path = "src/main.rs"
 test = true
 
 [dependencies]
-toml = "0.1.30"
