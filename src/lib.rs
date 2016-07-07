@@ -1,7 +1,1 @@
-#[cfg(test)]
-mod test {
-    #[test]
-    fn it_works() {
-        assert!(true == true);
-    }
-}
+pub mod commands;
