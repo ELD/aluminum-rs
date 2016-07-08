@@ -1,21 +1,35 @@
 extern crate clap;
 extern crate rukyll;
 
-use clap::{Arg, App, SubCommand};
+use clap::{App, Arg, AppSettings, SubCommand};
 use rukyll::commands::{new_project};
+
+const VERSION_NUMBER: &'static str = "0.1.0";
 
 fn main() {
     let matches = App::new("Rukyll")
-                        .version("0.1.0")
+                        .setting(AppSettings::ArgRequiredElseHelp)
+                        .version(VERSION_NUMBER)
                         .about("Static site generator")
-                        .subcommand(SubCommand::with_name("new"))
+                        .subcommand(SubCommand::with_name("new")
+                            .arg(Arg::with_name("project name")
+                            .index(1)
+                            .required(true)
+                            )
+                        )
                         .get_matches();
 
-    match matches.subcommand_name() {
-        Some("new") => {
-            new_project();
+    match matches.subcommand() {
+        ("new", Some(new)) => {
+            // TODO: Better error handling
+            let project_name = if new.is_present("project name") {
+                new.value_of("project name").unwrap()
+            } else {
+                ""
+            };
+
+            new_project(&project_name);
         },
-        Some(_) => {},
-        None => {}
+        _ => {}
     }
 }
