@@ -1,5 +1,21 @@
+use std::fs::DirBuilder;
+use std::error::Error;
+
 pub fn new_project(parent_dir: &str) {
-    println!("Creating new project with name {}!", parent_dir);
+    match DirBuilder::new().recursive(true).create(parent_dir) {
+        Ok(_) => {},
+        Err(what) => println!("{}", Error::description(&what))
+    }
+
+    match DirBuilder::new().recursive(false).create(format!("{}/pages", parent_dir)) {
+        Ok(_) => {},
+        Err(what) => println!("{}", Error::description(&what))
+    }
+
+    match DirBuilder::new().recursive(false).create(format!("{}/_site", parent_dir)) {
+        Ok(_) => {},
+        Err(what) => println!("{}", Error::description(&what))
+    }
 }
 
 #[cfg(test)]
@@ -15,12 +31,15 @@ mod test {
         // Setup
         let temp_dir = env::temp_dir();
         let proj_dir = String::from(temp_dir.to_str().unwrap()) + "/test-project";
+        let site_dir = proj_dir.clone() + "/_site";
+        let page_dir = proj_dir.clone() + "/pages";
 
-        // TODO: Replace this logic with created directories
          new_project(proj_dir.as_ref());
 
-        // Assert equal
+        // Assert directories exists
         assert!(path::Path::new(&proj_dir).exists());
+        assert!(path::Path::new(&site_dir).exists());
+        assert!(path::Path::new(&page_dir).exists());
 
         // Teardown
         match remove_dir_all(proj_dir) {

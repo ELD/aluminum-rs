@@ -11,7 +11,7 @@ test = true
 [[bin]]
 name = "rukyll"
 path = "src/main.rs"
-test = true
+test = false
 
 [dependencies]
 clap = "2.*"

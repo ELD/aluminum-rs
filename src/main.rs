@@ -2,7 +2,7 @@ extern crate clap;
 extern crate rukyll;
 
 use clap::{App, Arg, AppSettings, SubCommand};
-use rukyll::commands::{new_project};
+use rukyll::commands;
 
 const VERSION_NUMBER: &'static str = "0.1.0";
 
@@ -28,7 +28,7 @@ fn main() {
                 ""
             };
 
-            new_project(&project_name);
+            commands::new_project(&project_name);
         },
         _ => {}
     }
