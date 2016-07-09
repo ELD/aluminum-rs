@@ -26,6 +26,6 @@ fn main() {
             ""
         };
 
-        commands::new_project(&project_name);
+        commands::new_project(project_name);
     }
 }
