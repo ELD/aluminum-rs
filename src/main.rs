@@ -26,7 +26,7 @@ fn main() {
             ""
         };
 
-        commands::new_project(project_name);
+        commands::new_project(project_name).unwrap();
     } else if let ("build", Some(build)) = matches.subcommand() {
         // Do building of project/markdown files
         println!("Building project...");

@@ -1,10 +1,6 @@
-use std::fmt;
 use std::io;
 use std::fs::File;
-use std::error::Error;
-use std::fmt::{Debug, Display};
 use std::io::prelude::*;
-
 use pulldown_cmark::Parser;
 use pulldown_cmark::html;
 
@@ -19,7 +15,7 @@ impl PageGenerator {
         let mut file_contents = String::new();
         let mut input_md_file = try!(File::open(source));
 
-        input_md_file.read_to_string(&mut file_contents);
+        try!(input_md_file.read_to_string(&mut file_contents));
 
         let parser = Parser::new(&file_contents);
 
