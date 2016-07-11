@@ -19,7 +19,7 @@ fn main() {
 
 
     if let ("new", Some(new)) = matches.subcommand() {
-        // TODO: Better error handling
+        // TODO: Better error handling - Propagate errors up the stack to this method
         let project_name = if new.is_present("project name") {
             new.value_of("project name").unwrap()
         } else {
@@ -27,5 +27,9 @@ fn main() {
         };
 
         commands::new_project(project_name);
+    } else if let ("build", Some(build)) = matches.subcommand() {
+        // Do building of project/markdown files
+        println!("Building project...");
+        commands::build_project().unwrap();
     }
 }

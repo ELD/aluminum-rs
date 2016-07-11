@@ -1,5 +1,8 @@
+use std::io;
 use std::fs::DirBuilder;
+use std::path::Path;
 use std::error::Error;
+use super::generation::PageGenerator;
 
 pub fn new_project(parent_dir: &str) {
     match DirBuilder::new().recursive(true).create(parent_dir) {
@@ -11,6 +14,30 @@ pub fn new_project(parent_dir: &str) {
         Ok(_) => {},
         Err(what) => println!("{}", Error::description(&what))
     }
+}
+
+pub fn build_project() -> Result<(), io::Error> {
+    let pages_path = "pages";
+    let output_dir = "_site";
+    let page_generator = PageGenerator::new();
+
+    let directory_iterator = try!(Path::new(pages_path).read_dir());
+
+    DirBuilder::new().create(format!("{}", output_dir));
+
+    for entry in directory_iterator {
+        let file = try!(entry);
+        let file_type = file.file_type().unwrap();
+        let source_file = format!("{}/{}", pages_path, file.file_name().to_str().unwrap());
+        let file_stem = String::from(file.path().file_stem().unwrap().to_str().unwrap());
+        let destination_file = format!("{}/{}.html", output_dir, file_stem);
+
+        if file_type.is_file() && file.file_name().to_str().unwrap().contains(".md") {
+            page_generator.md_to_html(&source_file, &destination_file);
+        }
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
