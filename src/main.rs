@@ -1,8 +1,8 @@
 extern crate clap;
-extern crate rukyll;
+extern crate aluminum;
 
 use clap::{App, Arg, AppSettings, SubCommand};
-use rukyll::commands;
+use aluminum::commands;
 
 const VERSION_NUMBER: &'static str = "0.1.0";
 

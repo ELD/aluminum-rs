@@ -1,15 +1,15 @@
 [package]
-name = "rukyll"
-version = "0.1.0"
+name = "aluminum"
+version = "0.2.0"
 authors = ["Eric Dattore <edattore@gmail.com>"]
 
 [lib]
-name = "rukyll"
+name = "aluminum"
 path = "src/lib.rs"
 test = true
 
 [[bin]]
-name = "rukyll"
+name = "aluminum"
 path = "src/main.rs"
 test = false
 
