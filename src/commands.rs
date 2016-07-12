@@ -45,12 +45,14 @@ mod test {
     use std::env;
     use std::path;
     use std::error::Error;
+    use std::fs::File;
+    use std::io::prelude::*;
 
     #[test]
     fn it_creates_default_directory_structure() {
         // Setup
         let temp_dir = env::temp_dir();
-        let proj_dir = String::from(temp_dir.to_str().unwrap()) + "/test-project";
+        let proj_dir = String::from(temp_dir.to_str().unwrap()) + "/test-project0";
         let page_dir = proj_dir.clone() + "/pages";
 
         new_project(proj_dir.as_ref());
@@ -58,6 +60,50 @@ mod test {
         // Assert directories exists
         assert!(path::Path::new(&proj_dir).exists());
         assert!(path::Path::new(&page_dir).exists());
+
+        // Teardown
+        match remove_dir_all(proj_dir) {
+            Ok(_) => {},
+            Err(what) => panic!("{}", Error::description(&what))
+        }
+    }
+
+    #[test]
+    fn it_parses_md_files_to_html_in_the_project() {
+        // Setup
+        let temp_dir = env::temp_dir();
+        let proj_dir = String::from(temp_dir.to_str().unwrap()) + "/test-project1";
+        let page_dir = proj_dir.clone() + "/pages";
+        let site_dir = proj_dir.clone() + "/_site";
+        let test_file_name = page_dir.clone() + "/test.md";
+        let test_file_compiled_name = "_site/test.html";
+
+        new_project(&proj_dir);
+
+        // Add markdown file
+        let mut test_file = match File::create(&test_file_name) {
+            Ok(file) => file,
+            Err(what) => panic!("{}", Error::description(&what))
+        };
+
+        test_file.write_all(b"# This is a test");
+
+        env::set_current_dir(&proj_dir);
+        build_project();
+
+        let mut test_output_file = match File::open(&test_file_compiled_name) {
+            Ok(file) => file,
+            Err(what) => panic!("{}", Error::description(&what))
+        };
+
+        let mut compiled_contents = String::new();
+
+        test_output_file.read_to_string(&mut compiled_contents);
+
+        let expected = "<h1>This is a test</h1>";
+
+        assert!(path::Path::new(&test_file_compiled_name).exists());
+        assert_eq!(expected, compiled_contents.trim());
 
         // Teardown
         match remove_dir_all(proj_dir) {
