@@ -12,8 +12,8 @@ fn main() {
         .version(VERSION_NUMBER)
         .about("Static site generator")
         .subcommand(SubCommand::with_name("new").arg(Arg::with_name("project name")
-            .index(1)
-            .required(true)))
+                                                         .index(1)
+                                                         .required(true)))
         .subcommand(SubCommand::with_name("build"))
         .get_matches();
 

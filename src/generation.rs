@@ -84,7 +84,6 @@ mod test {
         // Delete mock file in temp_dir
         fs::remove_file(&md_file_name);
         fs::remove_file(&html_file_name);
-
     }
 
     #[test]
