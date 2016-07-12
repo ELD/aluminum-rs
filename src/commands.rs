@@ -18,7 +18,10 @@ pub fn build_project() -> Result<(), io::Error> {
 
     let directory_iterator = try!(Path::new(pages_path).read_dir());
 
-    try!(DirBuilder::new().create(format!("{}", output_dir)));
+    match DirBuilder::new().create(format!("{}", output_dir)) {
+        Ok(_) => {},
+        Err(_) => {},
+    };
 
     for entry in directory_iterator {
         let file = try!(entry);

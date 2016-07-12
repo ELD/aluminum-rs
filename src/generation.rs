@@ -1,5 +1,6 @@
 use std::io;
 use std::fs::File;
+use std::fs::OpenOptions;
 use std::io::prelude::*;
 use pulldown_cmark::Parser;
 use pulldown_cmark::html;
@@ -22,7 +23,11 @@ impl PageGenerator {
         let mut parsed_html = String::with_capacity(file_contents.len() * 3 / 2);
         html::push_html(&mut parsed_html, parser);
 
-        let mut output_html_file = try!(File::create(destination));
+        let mut output_html_file = try!(OpenOptions::new()
+                                            .read(true)
+                                            .write(true)
+                                            .create(true)
+                                            .open(destination));
 
         try!(output_html_file.write_all(parsed_html.as_bytes().as_ref()));
 
