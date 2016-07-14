@@ -15,6 +15,7 @@ fn main() {
                                                          .index(1)
                                                          .required(true)))
         .subcommand(SubCommand::with_name("build"))
+        .subcommand(SubCommand::with_name("clean"))
         .get_matches();
 
 
@@ -28,8 +29,10 @@ fn main() {
 
         commands::new_project(project_name).unwrap();
     } else if let ("build", Some(build)) = matches.subcommand() {
-        // Do building of project/markdown files
         println!("Building project...");
         commands::build_project().unwrap();
+    } else if let ("clean", Some(clean)) = matches.subcommand() {
+        println!("Cleaning project...");
+        commands::clean_project().unwrap();
     }
 }

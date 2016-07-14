@@ -1,4 +1,5 @@
 use std::io;
+use std::fs;
 use std::fs::DirBuilder;
 use std::path::Path;
 use super::generation::PageGenerator;
@@ -18,10 +19,7 @@ pub fn build_project() -> Result<(), io::Error> {
 
     let directory_iterator = try!(Path::new(pages_path).read_dir());
 
-    match DirBuilder::new().create(format!("{}", output_dir)) {
-        Ok(_) => {},
-        Err(_) => {},
-    };
+    try!(DirBuilder::new().create(output_dir));
 
     for entry in directory_iterator {
         let file = try!(entry);
@@ -37,6 +35,12 @@ pub fn build_project() -> Result<(), io::Error> {
                                 .generate());
         }
     }
+
+    Ok(())
+}
+
+pub fn clean_project() -> Result<(), io::Error> {
+    try!(fs::remove_dir_all("_site"));
 
     Ok(())
 }
@@ -121,5 +125,23 @@ mod test {
             Ok(_) => {},
             Err(what) => panic!("{}", Error::description(&what))
         }
+    }
+
+    #[test]
+    fn it_deletes_the_site_directory_when_the_project_gets_cleaned() {
+        let temp_dir = env::temp_dir();
+        let proj_dir = String::from(temp_dir.to_str().unwrap()) + "/test-project2";
+        let site_dir = proj_dir.clone() + "/_site";
+
+        new_project(&proj_dir);
+
+        env::set_current_dir(&proj_dir);
+        build_project();
+
+        assert!(path::Path::new(&site_dir).exists());
+
+        clean_project();
+
+        assert!(!path::Path::new(&site_dir).exists());
     }
 }
