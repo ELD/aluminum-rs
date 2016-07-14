@@ -1,6 +1,9 @@
 extern crate clap;
 extern crate aluminum;
 
+use std::io;
+use std::io::prelude::*;
+use std::error::Error;
 use clap::{App, Arg, AppSettings, SubCommand};
 use aluminum::commands;
 
@@ -20,7 +23,6 @@ fn main() {
 
 
     if let ("new", Some(new)) = matches.subcommand() {
-        // TODO: Better error handling - Propagate errors up the stack to this method
         let project_name = if new.is_present("project name") {
             new.value_of("project name").unwrap()
         } else {
@@ -28,11 +30,31 @@ fn main() {
         };
 
         commands::new_project(project_name).unwrap();
-    } else if let ("build", Some(build)) = matches.subcommand() {
+    } else if matches.is_present("build") {
         println!("Building project...");
-        commands::build_project().unwrap();
-    } else if let ("clean", Some(clean)) = matches.subcommand() {
+        match commands::build_project() {
+            Ok(_) => {},
+            Err(what) => {
+                io::stderr()
+                    .write(
+                        format!("Error: {}", Error::description(&what))
+                            .as_bytes()
+                    )
+                    .unwrap();
+            }
+        }
+    } else if matches.is_present("clean") {
         println!("Cleaning project...");
-        commands::clean_project().unwrap();
+        match commands::clean_project() {
+            Ok(_) => {},
+            Err(what) => {
+                io::stderr()
+                    .write(
+                        format!("Error: {}", Error::description(&what))
+                            .as_bytes()
+                    )
+                    .unwrap();
+            }
+        }
     }
 }

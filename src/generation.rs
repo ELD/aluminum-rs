@@ -1,7 +1,8 @@
 use std::io;
+use std::io::prelude::*;
 use std::fs::File;
 use std::fs::OpenOptions;
-use std::io::prelude::*;
+use std::default::Default;
 use pulldown_cmark::Parser;
 use pulldown_cmark::html;
 
@@ -13,11 +14,7 @@ pub struct PageGenerator {
 
 impl PageGenerator {
     pub fn new() -> Self {
-        PageGenerator {
-            input_file: String::new(),
-            output_file: String::new(),
-            wrap_html: false,
-        }
+        Self::default()
     }
 
     pub fn set_input_file<S: Into<String>>(&mut self, input_file: S) -> &mut Self {
@@ -72,6 +69,16 @@ impl PageGenerator {
         html::push_html(&mut parsed_html, parser);
 
         Ok(parsed_html)
+    }
+}
+
+impl Default for PageGenerator {
+    fn default() -> Self {
+        PageGenerator {
+            input_file: String::new(),
+            output_file: String::new(),
+            wrap_html: false,
+        }
     }
 }
 
