@@ -14,7 +14,7 @@ pub fn new_project(parent_dir: &str) -> Result<(), io::Error> {
 pub fn build_project() -> Result<(), io::Error> {
     let pages_path = "pages";
     let output_dir = "_site";
-    let page_generator = PageGenerator::new();
+    let mut page_generator = PageGenerator::new();
 
     let directory_iterator = try!(Path::new(pages_path).read_dir());
 
@@ -31,7 +31,9 @@ pub fn build_project() -> Result<(), io::Error> {
         let destination_file = format!("{}/{}.html", output_dir, file_stem);
 
         if file_type.is_file() && file.file_name().to_str().unwrap().contains(".md") {
-            try!(page_generator.md_to_html(&source_file, &destination_file));
+            try!(page_generator.set_input_file(source_file.as_ref())
+                                .set_output_file(destination_file.as_ref())
+                                .generate());
         }
     }
 
