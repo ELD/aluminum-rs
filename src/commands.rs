@@ -33,6 +33,7 @@ pub fn build_project() -> Result<(), io::Error> {
         if file_type.is_file() && file.file_name().to_str().unwrap().contains(".md") {
             try!(page_generator.set_input_file(source_file.as_ref())
                                 .set_output_file(destination_file.as_ref())
+                                .set_wrap(true)
                                 .generate());
         }
     }
@@ -102,7 +103,15 @@ mod test {
 
         test_output_file.read_to_string(&mut compiled_contents);
 
-        let expected = "<h1>This is a test</h1>";
+        let expected = "<!DOCTYPE html>\n\
+                        <html>\n\
+                        <head>\n\
+                        <title>Aluminum Page</title>\n\
+                        </head>\n\
+                        <body>\n\
+                        <h1>This is a test</h1>\n\
+                        </body>\n\
+                        </html>";
 
         assert!(path::Path::new(&test_file_compiled_name).exists());
         assert_eq!(expected, compiled_contents.trim());
