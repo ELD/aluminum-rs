@@ -143,5 +143,10 @@ mod test {
         clean_project();
 
         assert!(!path::Path::new(&site_dir).exists());
+
+        match remove_dir_all(proj_dir) {
+            Ok(_) => {},
+            Err(what) => panic!("{}", Error::description(&what))
+        }
     }
 }
