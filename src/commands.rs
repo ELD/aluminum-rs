@@ -1,6 +1,6 @@
 use std::io;
 use std::fs;
-use std::fs::DirBuilder;
+use std::fs::{DirBuilder, File};
 use std::path::Path;
 use super::generation::PageGenerator;
 
@@ -8,6 +8,8 @@ pub fn new_project(parent_dir: &str) -> Result<(), io::Error> {
     try!(DirBuilder::new().recursive(true).create(parent_dir));
 
     try!(DirBuilder::new().recursive(false).create(format!("{}/pages", parent_dir)));
+
+    try!(File::create(format!("{}/_config.yml", parent_dir)));
 
     Ok(())
 }
@@ -61,12 +63,14 @@ mod test {
         let temp_dir = env::temp_dir();
         let proj_dir = String::from(temp_dir.to_str().unwrap()) + "/test-project0";
         let page_dir = proj_dir.clone() + "/pages";
+        let site_config = proj_dir.clone() + "/_config.yml";
 
         new_project(proj_dir.as_ref());
 
         // Assert directories exists
         assert!(path::Path::new(&proj_dir).exists());
         assert!(path::Path::new(&page_dir).exists());
+        assert!(path::Path::new(&site_config).exists());
 
         // Teardown
         match remove_dir_all(proj_dir) {
