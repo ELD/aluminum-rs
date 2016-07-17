@@ -47,14 +47,7 @@ fn main() {
         println!("Cleaning project...");
         match commands::clean_project() {
             Ok(_) => {},
-            Err(what) => {
-                io::stderr()
-                    .write(
-                        format!("Error: {}", Error::description(&what))
-                            .as_bytes()
-                    )
-                    .unwrap();
-            }
+            Err(_) => {}
         }
     }
 }
