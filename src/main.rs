@@ -46,8 +46,7 @@ fn main() {
     } else if matches.is_present("clean") {
         println!("Cleaning project...");
         match commands::clean_project() {
-            Ok(_) => {},
-            Err(_) => {}
+            Ok(_) | Err(_) => {},
         }
     }
 }
