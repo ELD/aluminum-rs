@@ -85,103 +85,74 @@ impl Default for PageGenerator {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::io;
     use std::io::prelude::*;
-    use std::fs;
     use std::fs::File;
     use std::env::temp_dir;
-    use std::error::Error;
-    use pulldown_cmark::Parser;
-    use pulldown_cmark::html;
+    use tempdir::TempDir;
 
     #[test]
     fn it_parses_a_valid_markdown_file_to_html() {
-        // Set up mock file in temp_dir
-        let temp_dir = String::from(temp_dir().to_str().unwrap());
-        let md_file_name = temp_dir.clone() + "/test1.md";
-        let html_file_name = temp_dir.clone() + "/test1.html";
+        let temp_dir = TempDir::new("parse-valid-markdown").expect("Temp Dir");
+        let md_file_name = temp_dir.path().join("test.md");
+        let html_file_name = temp_dir.path().join("test.html");
 
-        let mut file = match File::create(&md_file_name) {
-            Ok(file) => file,
-            Err(what) => panic!("{}", Error::description(&what))
-        };
+        let mut file = File::create(&md_file_name).expect("Markdown File Create");
 
-        match file.write(b"# This is a test") {
-            Ok(_) => {},
-            Err(what) => panic!("{}", Error::description(&what))
-        };
+        writeln!(file, "# This is a test").expect("Write Markdown");
 
-        // Read mock md file to HTML
-        let page_generator = PageGenerator::new()
-                                .set_input_file(md_file_name.as_ref())
-                                .set_output_file(html_file_name.as_ref())
-                                .set_wrap(false)
-                                .generate();
+        PageGenerator::new()
+            .set_input_file(md_file_name.to_str().expect("Input File"))
+            .set_output_file(html_file_name.to_str().expect("Output File"))
+            .set_wrap(false)
+            .generate()
+            .expect("Generate Pages");
 
-        // Assert contents are as expected
         let expected = String::from("<h1>This is a test</h1>");
         let mut actual = String::new();
 
-        let mut output_file = match File::open(&html_file_name) {
-            Ok(file) => file,
-            Err(what) => panic!("{}", Error::description(&what))
-        };
+        let mut output_file = File::open(&html_file_name).expect("Open HTML File");
 
-        output_file.read_to_string(&mut actual);
+        output_file.read_to_string(&mut actual).expect("Reading HTML File");
 
         assert_eq!(expected, actual.trim());
-
-        // Delete mock file in temp_dir
-        fs::remove_file(&md_file_name);
-        fs::remove_file(&html_file_name);
     }
 
     #[test]
     #[should_panic]
     fn it_panics_when_file_cannot_be_found() {
-        // Setup
         let temp_dir = String::from(temp_dir().to_str().unwrap());
         let md_file_name = temp_dir.clone() + "/test2.md";
         let html_file_name = temp_dir.clone() + "/test2.html";
 
-        // Attempt to parse - expect panic!
         let mut page_generator = PageGenerator::new();
         page_generator.set_input_file(md_file_name.as_ref())
                       .set_output_file(html_file_name.as_ref());
 
-        let result = match page_generator.generate() {
-            Ok(_) => {},
-            Err(what) => panic!("{}", Error::description(&what))
-        };
+        page_generator.generate().expect("Generate Pages");
     }
 
     #[test]
     fn it_wraps_generated_md_in_well_formed_html_skeleton() {
-        let temp_dir = String::from(temp_dir().to_str().unwrap());
-        let md_file_name = temp_dir.clone() + "/test3.md";
-        let html_file_name = temp_dir.clone() + "/test3.html";
+        let temp_dir = TempDir::new("wrap-generated-html").expect("Temp Dir");
+        let md_file_name = temp_dir.path().join("test.md");
+        let html_file_name = temp_dir.path().join("test.html");
 
-        let mut file = match File::create(&md_file_name) {
-            Ok(file) => file,
-            Err(what) => panic!("{}", Error::description(&what))
-        };
+        let mut file = File::create(&md_file_name).expect("Create Markdown File");
 
-        file.write_all(b"# This is a test\nAnd some more text here...");
+        writeln!(file, "# This is a test\nAnd some more text here...").expect("Write Markdown");
 
-        let page_generator = PageGenerator::new()
-                                .set_input_file(md_file_name.as_ref())
-                                .set_output_file(html_file_name.as_ref())
-                                .set_wrap(true)
-                                .generate();
+        PageGenerator::new()
+            .set_input_file(md_file_name.to_str().expect("Input File"))
+            .set_output_file(html_file_name.to_str().expect("Output File"))
+            .set_wrap(true)
+            .generate()
+            .expect("Generate Pages");
 
         let mut actual = String::new();
 
-        let mut output_file = match File::open(&html_file_name) {
-            Ok(file) => file,
-            Err(what) => panic!("{}", Error::description(&what))
-        };
+        let mut output_file = File::open(&html_file_name).expect("Open Output File");
 
-        output_file.read_to_string(&mut actual);
+        output_file.read_to_string(&mut actual).expect("Read Output");
 
         let expected = "<!DOCTYPE html>\n\
                             <html>\n\
@@ -195,8 +166,5 @@ mod test {
                             </html>";
 
         assert_eq!(actual, expected);
-
-        fs::remove_file(&md_file_name);
-        fs::remove_file(&html_file_name);
     }
 }

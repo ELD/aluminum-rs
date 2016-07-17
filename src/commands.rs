@@ -32,9 +32,9 @@ pub fn build_project() -> Result<(), io::Error> {
 
         if file_type.is_file() && file.file_name().to_str().unwrap().contains(".md") {
             try!(page_generator.set_input_file(source_file.as_ref())
-                                .set_output_file(destination_file.as_ref())
-                                .set_wrap(true)
-                                .generate());
+                     .set_output_file(destination_file.as_ref())
+                     .set_wrap(true)
+                     .generate());
         }
     }
 
@@ -50,66 +50,51 @@ pub fn clean_project() -> Result<(), io::Error> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::fs::remove_dir_all;
     use std::env;
     use std::path;
-    use std::error::Error;
-    use std::fs::File;
+    use std::fs::{create_dir, File};
     use std::io::prelude::*;
+    use tempdir::TempDir;
 
     #[test]
     fn it_creates_default_directory_structure() {
-        // Setup
-        let temp_dir = env::temp_dir();
-        let proj_dir = String::from(temp_dir.to_str().unwrap()) + "/test-project0";
-        let page_dir = proj_dir.clone() + "/pages";
-        let site_config = proj_dir.clone() + "/_config.yml";
+        let temp_dir = TempDir::new("creates-default-directory").expect("Temp Dir");
+        let proj_dir = temp_dir.path().join("test-project");
+        let page_dir = proj_dir.join("pages");
+        let site_config = proj_dir.join("_config.yml");
 
-        new_project(proj_dir.as_ref());
+        new_project(proj_dir.to_str().unwrap()).expect("New Project");
 
-        // Assert directories exists
         assert!(path::Path::new(&proj_dir).exists());
         assert!(path::Path::new(&page_dir).exists());
         assert!(path::Path::new(&site_config).exists());
-
-        // Teardown
-        match remove_dir_all(proj_dir) {
-            Ok(_) => {},
-            Err(what) => panic!("{}", Error::description(&what))
-        }
     }
 
     #[test]
     fn it_parses_md_files_to_html_in_the_project() {
-        // Setup
-        let temp_dir = env::temp_dir();
-        let proj_dir = String::from(temp_dir.to_str().unwrap()) + "/test-project1";
-        let page_dir = proj_dir.clone() + "/pages";
-        let site_dir = proj_dir.clone() + "/_site";
-        let test_file_name = page_dir.clone() + "/test.md";
-        let test_file_compiled_name = "_site/test.html";
+        let tmp_dir = TempDir::new("parse-md-project").expect("Temp Dir");
 
-        new_project(&proj_dir);
+        let pages_dir_path = tmp_dir.path().join("pages");
+        let site_dir_path = tmp_dir.path().join("_site");
 
-        // Add markdown file
-        let mut test_file = match File::create(&test_file_name) {
-            Ok(file) => file,
-            Err(what) => panic!("{}", Error::description(&what))
-        };
+        create_dir(&pages_dir_path).expect("Pages Dir");
 
-        test_file.write_all(b"# This is a test");
+        let md_file_path = pages_dir_path.join("test.md");
+        let html_file_path = site_dir_path.join("test.html");
 
-        env::set_current_dir(&proj_dir);
-        build_project();
+        let mut md_file_handle = File::create(md_file_path).expect("Markdown file");
 
-        let mut test_output_file = match File::open(&test_file_compiled_name) {
-            Ok(file) => file,
-            Err(what) => panic!("{}", Error::description(&what))
-        };
+        writeln!(md_file_handle, "# This is a test").expect("Write Markdown");
+
+        env::set_current_dir(tmp_dir.path()).expect("Set Working Dir");
+
+        build_project().ok().expect("Build Project");
+
+        let mut output_file = File::open(html_file_path).expect("HTML file");
 
         let mut compiled_contents = String::new();
 
-        test_output_file.read_to_string(&mut compiled_contents);
+        output_file.read_to_string(&mut compiled_contents).expect("Read Output File");
 
         let expected = "<!DOCTYPE html>\n\
                         <html>\n\
@@ -121,36 +106,23 @@ mod test {
                         </body>\n\
                         </html>";
 
-        assert!(path::Path::new(&test_file_compiled_name).exists());
         assert_eq!(expected, compiled_contents.trim());
-
-        // Teardown
-        match remove_dir_all(proj_dir) {
-            Ok(_) => {},
-            Err(what) => panic!("{}", Error::description(&what))
-        }
     }
 
     #[test]
     fn it_deletes_the_site_directory_when_the_project_gets_cleaned() {
-        let temp_dir = env::temp_dir();
-        let proj_dir = String::from(temp_dir.to_str().unwrap()) + "/test-project2";
-        let site_dir = proj_dir.clone() + "/_site";
+        let tmp_dir = TempDir::new("clean-project").expect("Temp Dir");
+        let page_dir_path = tmp_dir.path().join("pages");
+        let site_dir_path = tmp_dir.path().join("_site");
 
-        new_project(&proj_dir);
+        create_dir(&page_dir_path).expect("Page Dir");
+        create_dir(&site_dir_path).expect("Site Dir");
 
-        env::set_current_dir(&proj_dir);
-        build_project();
+        assert!(site_dir_path.exists());
 
-        assert!(path::Path::new(&site_dir).exists());
+        env::set_current_dir(&tmp_dir.path()).expect("Set Working Directory");
+        clean_project().expect("Clean Project");
 
-        clean_project();
-
-        assert!(!path::Path::new(&site_dir).exists());
-
-        match remove_dir_all(proj_dir) {
-            Ok(_) => {},
-            Err(what) => panic!("{}", Error::description(&what))
-        }
+        assert!(!site_dir_path.exists());
     }
 }
