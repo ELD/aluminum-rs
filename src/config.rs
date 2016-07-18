@@ -15,20 +15,26 @@ impl Config {
 
         let yaml = yaml.get(0).unwrap();
 
-        let mut config = Config {
-            source_dir: String::new(),
-            output_dir: String::new(),
-        };
+        let mut config = Self::default();
 
         if let Some(source) = yaml["source"].as_str() {
-            config.source_dir = String::from(source);
+            config.source_dir = source.to_string();
         }
 
         if let Some(output) = yaml["output"].as_str() {
-            config.output_dir = String::from(output);
+            config.output_dir = output.to_string();
         }
 
         config
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            source_dir: "./pages".to_string(),
+            output_dir: "./_site".to_string(),
+        }
     }
 }
 

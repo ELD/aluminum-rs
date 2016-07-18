@@ -35,12 +35,7 @@ fn main() {
         match commands::build_project() {
             Ok(_) => {},
             Err(what) => {
-                io::stderr()
-                    .write(
-                        format!("Error: {}", Error::description(&what))
-                            .as_bytes()
-                    )
-                    .unwrap();
+                writeln!(io::stderr(), "Error: {}", Error::description(&what)).expect("Print Error");
             }
         }
     } else if matches.is_present("clean") {

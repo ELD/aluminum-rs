@@ -21,7 +21,9 @@ pub fn build_project() -> Result<(), io::Error> {
 
     let directory_iterator = try!(Path::new(pages_path).read_dir());
 
-    try!(DirBuilder::new().create(output_dir));
+    if !Path::new(output_dir).exists() {
+        try!(DirBuilder::new().create(output_dir));
+    }
 
     for entry in directory_iterator {
         let file = try!(entry);
