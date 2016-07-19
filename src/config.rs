@@ -7,7 +7,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(config_string: String) -> Self {
+    pub fn from_string(config_string: String) -> Self {
         let yaml = match YamlLoader::load_from_str(&config_string) {
             Ok(yaml) => yaml,
             Err(what) => panic!("{}", Error::description(&what))
@@ -51,7 +51,7 @@ mod tests {
     fn it_parses_input_directory_option_in_config() {
         let config_string = setup();
 
-        let config = Config::new(config_string);
+        let config = Config::from_string(config_string);
 
         assert_eq!("pages", config.source_dir);
     }
@@ -60,7 +60,7 @@ mod tests {
     fn it_parses_output_directory_option_in_config() {
         let config_string = setup();
 
-        let config = Config::new(config_string);
+        let config = Config::from_string(config_string);
 
         assert_eq!("_site", config.output_dir);
     }
