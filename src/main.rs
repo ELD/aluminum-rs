@@ -52,8 +52,19 @@ fn main() {
             }
         }
     } else if matches.is_present("clean") {
+        let mut config_file_contents = String::new();
+        let mut config_file = match File::open("_config.yml") {
+            Ok(file) => file,
+            Err(what) => panic!("No config file present: {}", Error::description(&what))
+        };
+
+        match config_file.read_to_string(&mut config_file_contents) {
+            Ok(_) => {},
+            Err(what) => panic!("Unable to read config file: {}", Error::description(&what))
+        }
+
         println!("Cleaning project...");
-        match commands::clean_project() {
+        match commands::clean_project(Config::from_string(config_file_contents)) {
             Ok(_) | Err(_) => {},
         }
     }
