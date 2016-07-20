@@ -10,22 +10,29 @@ impl Config {
     pub fn from_string(config_string: String) -> Self {
         let yaml = match YamlLoader::load_from_str(&config_string) {
             Ok(yaml) => yaml,
-            Err(what) => panic!("{}", Error::description(&what))
+            Err(what) => panic!("Config file couldn't be read: {}", Error::description(&what))
         };
 
-        let yaml = yaml.get(0).unwrap();
-
         let mut config = Self::default();
+        if let Some(yaml) = yaml.get(0) {
+            if let Some(source) = yaml["source"].as_str() {
+                config.source_dir = source.to_string();
+            }
 
-        if let Some(source) = yaml["source"].as_str() {
-            config.source_dir = source.to_string();
-        }
-
-        if let Some(output) = yaml["output"].as_str() {
-            config.output_dir = output.to_string();
+            if let Some(output) = yaml["output"].as_str() {
+                config.output_dir = output.to_string();
+            }
         }
 
         config
+    }
+
+    pub fn get_output_dir(&self) -> &str {
+        &self.output_dir
+    }
+
+    pub fn get_source_dir(&self) -> &str {
+        &self.source_dir
     }
 }
 

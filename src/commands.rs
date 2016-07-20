@@ -3,6 +3,7 @@ use std::fs;
 use std::fs::{DirBuilder, File};
 use std::path::Path;
 use super::generation::PageGenerator;
+use super::config::Config;
 
 pub fn new_project(parent_dir: &str) -> Result<(), io::Error> {
     try!(DirBuilder::new().recursive(true).create(parent_dir));
@@ -14,9 +15,9 @@ pub fn new_project(parent_dir: &str) -> Result<(), io::Error> {
     Ok(())
 }
 
-pub fn build_project() -> Result<(), io::Error> {
-    let pages_path = "pages";
-    let output_dir = "_site";
+pub fn build_project(config: Config) -> Result<(), io::Error> {
+    let pages_path = config.get_source_dir();
+    let output_dir = config.get_output_dir();
     let mut page_generator = PageGenerator::new();
 
     let directory_iterator = try!(Path::new(pages_path).read_dir());
