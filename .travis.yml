@@ -30,7 +30,8 @@ script:
       travis-cargo test
 
 after_success:
-  - travis-cargo --only stable coveralls --no-sudo --exclude-pattern="src/main.rs,target/debug/build/"
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then travis-cargo coveralls --no-sudo --verify; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./kcov/build/src/kcov --verify --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo target/kcov target/debug/aluminum-*; fi
 
 env:
   global:
