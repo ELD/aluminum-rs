@@ -1,10 +1,20 @@
 sudo: false
 cache: cargo
 language: rust
+
+addons:
+  apt:
+    packages:
+      - libcurl4-openssl-dev
+      - libelf-dev
+      - libdw-dev
+      - binutils-dev
+
 rust:
   - stable
   - beta
   - nightly
+
 matrix:
   allow_failures:
     - rust: nightly
@@ -20,4 +30,8 @@ script:
       travis-cargo test
 
 after_success:
-  - travis-cargo coveralls --no-sudo --verify --exclude-pattern="src/main.rs,src/lib.rs,target/debug/build"
+  - travis-cargo --only stable coveralls --no-sudo --exclude-pattern="src/main.rs,target/debug/build/"
+
+env:
+  global:
+    - TRAVIS_CARGO_NIGHTLY_FEATURE=nightly
