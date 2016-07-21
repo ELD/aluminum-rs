@@ -49,14 +49,27 @@ impl Default for Config {
 mod tests {
     use super::*;
 
-    fn setup() -> String {
-        String::from("source: pages\n\
-            output: _site")
+    fn good_setup() -> String {
+        "source: pages\n\
+         output: _site".to_string()
+    }
+
+    fn bad_setup() -> String {
+        "source: pages\n\
+         \t\toutput: _site".to_string()
+    }
+
+    #[test]
+    fn it_creates_sensible_defaults() {
+        let config = Config::default();
+
+        assert_eq!("./pages", config.get_source_dir());
+        assert_eq!("./_site", config.get_output_dir());
     }
 
     #[test]
     fn it_parses_input_directory_option_in_config() {
-        let config_string = setup();
+        let config_string = good_setup();
 
         let config = Config::from_string(config_string);
 
@@ -65,10 +78,18 @@ mod tests {
 
     #[test]
     fn it_parses_output_directory_option_in_config() {
-        let config_string = setup();
+        let config_string = good_setup();
 
         let config = Config::from_string(config_string);
 
         assert_eq!("_site", config.output_dir);
+    }
+
+    #[test]
+    #[should_panic]
+    fn it_panics_on_poorly_formed_file() {
+        let config_string = bad_setup();
+
+        let config = Config::from_string(config_string);
     }
 }
