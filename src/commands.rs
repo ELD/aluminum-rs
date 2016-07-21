@@ -16,8 +16,8 @@ pub fn new_project(parent_dir: &str) -> Result<(), io::Error> {
 }
 
 pub fn build_project(config: Config) -> Result<(), io::Error> {
-    let pages_path = config.get_source_dir();
-    let output_dir = config.get_output_dir();
+    let pages_path = &config.source_dir;
+    let output_dir = &config.output_dir;
     let mut page_generator = PageGenerator::new();
 
     let directory_iterator = try!(Path::new(pages_path).read_dir());
@@ -45,7 +45,7 @@ pub fn build_project(config: Config) -> Result<(), io::Error> {
 }
 
 pub fn clean_project(config: Config) -> Result<(), io::Error> {
-    try!(fs::remove_dir_all(config.get_output_dir()));
+    try!(fs::remove_dir_all(config.output_dir));
 
     Ok(())
 }

@@ -2,8 +2,8 @@ use std::error::Error;
 use yaml_rust::yaml::YamlLoader;
 
 pub struct Config {
-    source_dir: String,
-    output_dir: String,
+    pub source_dir: String,
+    pub output_dir: String,
 }
 
 impl Config {
@@ -26,21 +26,13 @@ impl Config {
 
         config
     }
-
-    pub fn get_output_dir(&self) -> &str {
-        &self.output_dir
-    }
-
-    pub fn get_source_dir(&self) -> &str {
-        &self.source_dir
-    }
 }
 
 impl Default for Config {
     fn default() -> Self {
         Config {
-            source_dir: "./pages".to_string(),
-            output_dir: "./_site".to_string(),
+            source_dir: "pages".to_string(),
+            output_dir: "_site".to_string(),
         }
     }
 }
@@ -63,8 +55,8 @@ mod tests {
     fn it_creates_sensible_defaults() {
         let config = Config::default();
 
-        assert_eq!("./pages", config.get_source_dir());
-        assert_eq!("./_site", config.get_output_dir());
+        assert_eq!("pages", config.source_dir);
+        assert_eq!("_site", config.output_dir);
     }
 
     #[test]
