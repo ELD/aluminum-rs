@@ -30,11 +30,11 @@ script:
       travis-cargo test
 
 after_success: >
-if [[ $TRAVIS_RUST_VERSION == 'stable' ]]; then
-  travis-cargo coveralls --no-sudo --verify
-  ./kcov/build/src/kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-*
-  ./kcov/build/src/kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo target/kcov target/debug/lib-*
-fi
+  if [[ $TRAVIS_RUST_VERSION == 'stable' ]]; then
+    travis-cargo coveralls --no-sudo --verify
+    ./kcov/build/src/kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-*
+    ./kcov/build/src/kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo target/kcov target/debug/lib-*
+  fi
 
 env:
   global:
