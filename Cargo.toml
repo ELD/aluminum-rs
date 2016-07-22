@@ -1,7 +1,10 @@
 [package]
 name = "aluminum"
+description = "Static site generator"
 version = "0.2.0"
 authors = ["Eric Dattore <edattore@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/ELD/Aluminum-rs"
 
 [lib]
 name = "aluminum"
