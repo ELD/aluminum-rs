@@ -82,6 +82,6 @@ mod tests {
     fn it_panics_on_poorly_formed_file() {
         let config_string = bad_setup();
 
-        let config = Config::from_string(config_string);
+        Config::from_string(config_string);
     }
 }

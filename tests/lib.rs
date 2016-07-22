@@ -1,7 +1,7 @@
 extern crate aluminum;
 
 use std::path::Path;
-use std::fs::{remove_dir_all, create_dir};
+use std::fs::{File, remove_dir_all, create_dir};
 
 use aluminum::commands;
 use aluminum::config;
@@ -23,7 +23,18 @@ fn it_creates_a_new_project() {
 
 #[test]
 fn it_builds_a_default_project() {
+    let proj_dir = "tests/tmp/default-project";
+    let source_dir = format!("{}/pages", proj_dir);
+    let output_dir = format!("{}/_site", proj_dir);
 
+    let mut config = config::Config::default();
+
+    config.source_dir = source_dir.clone();
+    config.output_dir = output_dir.clone();
+
+    commands::build_project(config).expect("Build Project");
+
+    remove_dir_all(output_dir).expect("Clean Up");
 }
 
 #[test]
@@ -40,4 +51,5 @@ fn it_deletes_the_built_site_on_clean() {
     assert!(!Path::new(dir_to_clean).exists());
 
     create_dir(dir_to_clean).expect("Clean Up");
+    File::create(format!("{}/.gitkeep", dir_to_clean)).expect("Clean Up");
 }

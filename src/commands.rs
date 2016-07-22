@@ -60,20 +60,6 @@ mod test {
     use tempdir::TempDir;
 
     // TODO: Refactor to integration test
-    fn it_creates_default_directory_structure() {
-        let temp_dir = TempDir::new("creates-default-directory").expect("Temp Dir");
-        let proj_dir = temp_dir.path().join("test-project");
-        let page_dir = proj_dir.join("pages");
-        let site_config = proj_dir.join("_config.yml");
-
-        new_project(proj_dir.to_str().unwrap()).expect("New Project");
-
-        assert!(path::Path::new(&proj_dir).exists());
-        assert!(path::Path::new(&page_dir).exists());
-        assert!(path::Path::new(&site_config).exists());
-    }
-
-    // TODO: Refactor to integration test
     fn it_parses_md_files_to_html_in_the_project() {
         let tmp_dir = TempDir::new("parse-md-project").expect("Temp Dir");
 
@@ -110,22 +96,5 @@ mod test {
                         </html>";
 
         assert_eq!(expected, compiled_contents.trim());
-    }
-
-    // TODO: Refactor to integration test
-    fn it_deletes_the_site_directory_when_the_project_gets_cleaned() {
-        let tmp_dir = TempDir::new("clean-project").expect("Temp Dir");
-        let page_dir_path = tmp_dir.path().join("pages");
-        let site_dir_path = tmp_dir.path().join("_site");
-
-        create_dir(&page_dir_path).expect("Page Dir");
-        create_dir(&site_dir_path).expect("Site Dir");
-
-        assert!(site_dir_path.exists());
-
-        env::set_current_dir(&tmp_dir.path()).expect("Set Working Directory");
-//        clean_project().expect("Clean Project");
-
-        assert!(!site_dir_path.exists());
     }
 }
