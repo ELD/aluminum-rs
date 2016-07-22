@@ -1,5 +1,5 @@
 # Aluminum-rs
-Master: [![Build Status](https://travis-ci.org/ELD/Aluminum-rs.svg?branch=master)](https://travis-ci.org/ELD/Aluminum-rs)
+[![Build Status](https://travis-ci.org/ELD/Aluminum-rs.svg?branch=master)](https://travis-ci.org/ELD/Aluminum-rs) [![Coverage Status](https://coveralls.io/repos/github/ELD/Aluminum-rs/badge.svg?branch=master)](https://coveralls.io/github/ELD/Aluminum-rs?branch=master)
 
 A simple and flexible static site generator written in Rust
 
