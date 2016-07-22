@@ -29,11 +29,12 @@ script:
       travis-cargo build &&
       travis-cargo test
 
-after_success:
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then travis-cargo coveralls --no-sudo --verify; fi
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./kcov/build/src/kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-*; fi
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./kcov/build/src/kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo target/kcov target/debug/lib-*; fi
-- echo $TRAVIS_RUST_VERSION
+after_success: >
+  if [[ $TRAVIS_RUST_VERSION == 'stable' ]]; then
+    travis-cargo coveralls --no-sudo --verify
+    ./kcov/build/src/kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-*
+    ./kcov/build/src/kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo target/kcov target/debug/lib-*
+  fi
 
 env:
   global:
