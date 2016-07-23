@@ -107,7 +107,7 @@ mod test {
             .generate()
             .expect("Generate Pages");
 
-        let expected = String::from("<h1>This is a test</h1>");
+        let expected = "<h1>This is a test</h1>".to_string();
         let mut actual = String::new();
 
         let mut output_file = File::open(&html_file_name).expect("Open HTML File");
@@ -120,7 +120,7 @@ mod test {
     #[test]
     #[should_panic]
     fn it_panics_when_file_cannot_be_found() {
-        let temp_dir = String::from(temp_dir().to_str().unwrap());
+        let temp_dir = temp_dir().to_string_lossy().into_owned();
         let md_file_name = temp_dir.clone() + "/test2.md";
         let html_file_name = temp_dir.clone() + "/test2.html";
 
