@@ -19,6 +19,11 @@ matrix:
   allow_failures:
     - rust: nightly
 
+branches:
+  only:
+    - master
+    - develop
+
 before_script:
   - |
       pip install 'travis-cargo<0.2' --user &&
