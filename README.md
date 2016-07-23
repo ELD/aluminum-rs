@@ -1,4 +1,6 @@
 # Aluminum-rs
+
+[![Join the chat at https://gitter.im/ELD/Aluminum-rs](https://badges.gitter.im/ELD/Aluminum-rs.svg)](https://gitter.im/ELD/Aluminum-rs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/ELD/Aluminum-rs.svg?branch=master)](https://travis-ci.org/ELD/Aluminum-rs)
 [![Coverage Status](https://coveralls.io/repos/github/ELD/Aluminum-rs/badge.svg?branch=master)](https://coveralls.io/github/ELD/Aluminum-rs?branch=master)
 
