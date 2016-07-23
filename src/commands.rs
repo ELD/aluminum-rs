@@ -1,4 +1,5 @@
 use std::io;
+use std::io::Write;
 use std::fs;
 use std::fs::{DirBuilder, File};
 use std::path::Path;
@@ -10,7 +11,9 @@ pub fn new_project(parent_dir: &str) -> Result<(), io::Error> {
 
     try!(DirBuilder::new().recursive(false).create(format!("{}/pages", parent_dir)));
 
-    try!(File::create(format!("{}/_config.yml", parent_dir)));
+    let mut config_file = try!(File::create(format!("{}/_config.yml", parent_dir)));
+
+    try!(config_file.write_all(b"source: pages\noutput: _site\n\n"));
 
     Ok(())
 }
