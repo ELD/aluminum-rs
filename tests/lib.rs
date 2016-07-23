@@ -9,15 +9,28 @@ use aluminum::config;
 
 #[test]
 fn it_creates_a_new_project() {
+    let config_fixture_path = "tests/fixtures/config/default.yml";
+
     let proj_dir = "tests/tmp/new-project";
     let pages_dir = "tests/tmp/new-project/pages";
     let config_path = "tests/tmp/new-project/_config.yml";
 
     commands::new_project(&proj_dir).expect("New Project");
 
+    let mut expected_config_file_contents = String::new();
+    let mut expected_config_file = File::open(config_fixture_path).expect("Expected Config");
+
+    let mut actual_config_file_contents = String::new();
+    let mut actual_config_file = File::open(config_path).expect("Actual Config");
+
+    expected_config_file.read_to_string(&mut expected_config_file_contents).expect("Read Expected");
+    actual_config_file.read_to_string(&mut actual_config_file_contents).expect("Read Actual"    );
+
     assert!(Path::new(&proj_dir).exists());
     assert!(Path::new(&pages_dir).exists());
     assert!(Path::new(&config_path).exists());
+
+    assert_eq!(expected_config_file_contents, actual_config_file_contents);
 
     remove_dir_all(proj_dir).expect("Clean Up");
 }
