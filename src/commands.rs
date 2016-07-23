@@ -30,26 +30,15 @@ pub fn build_project(config: Config) -> Result<(), io::Error> {
         let file = try!(entry);
         let file_type = try!(file.file_type());
 
-        let file_name = match file.file_name().to_str() {
-            Some(file_name) => file_name.to_string(),
-            None => continue
-        };
+        let file_name = file.file_name().into_string().expect("File Name");
 
         let source_file = format!("{}/{}", pages_path, file_name);
 
-        let file_stem = match file.path().file_stem() {
-            Some(file_stem) => file_stem.to_string_lossy().into_owned(),
-            None => continue
-        };
+        let file_stem = file.path().file_stem().expect("File Stem").to_string_lossy().into_owned();
 
         let destination_file = format!("{}/{}.html", output_dir, file_stem);
 
-        let file_ext = match file.file_name().to_str() {
-            Some(file_ext) => file_ext.to_string(),
-            None => continue
-        };
-
-        if file_type.is_file() && file_ext.contains(".md") {
+        if file_type.is_file() && file_name.contains(".md") {
             try!(page_generator.set_input_file(source_file.as_ref())
                      .set_output_file(destination_file.as_ref())
                      .set_wrap(true)
