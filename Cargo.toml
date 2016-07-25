@@ -20,6 +20,8 @@ test = false
 clap = "^2.0"
 pulldown-cmark = "^0.0"
 yaml-rust = "^0.3"
+hyper = "^0.9"
+log = "^0.3"
 
 [dev-dependencies]
 tempdir = "^0.3"

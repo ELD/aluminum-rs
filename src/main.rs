@@ -21,6 +21,7 @@ fn main() {
                                                          .required(true)))
         .subcommand(SubCommand::with_name("build"))
         .subcommand(SubCommand::with_name("clean"))
+        .subcommand(SubCommand::with_name("serve"))
         .get_matches();
 
 
@@ -67,5 +68,19 @@ fn main() {
         match commands::clean_project(Config::from_string(config_file_contents)) {
             Ok(_) | Err(_) => {},
         }
+    } else if matches.is_present("serve") {
+        let mut config_file_contents = String::new();
+        let mut config_file = match File::open("_config.yml") {
+            Ok(file) => file,
+            Err(what) => panic!("No config file present: {}", Error::description(&what))
+        };
+
+        match config_file.read_to_string(&mut config_file_contents) {
+            Ok(_) => {},
+            Err(what) => panic!("Unable to read config file: {}", Error::description(&what))
+        }
+
+        println!("Serving project");
+        commands::serve(Config::from_string(config_file_contents)).expect("Serve");
     }
 }

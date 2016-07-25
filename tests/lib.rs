@@ -1,8 +1,11 @@
 extern crate aluminum;
+extern crate hyper;
 
 use std::io::Read;
 use std::path::Path;
 use std::fs::{File, remove_dir_all, create_dir};
+use hyper::Client;
+use std::thread;
 
 use aluminum::commands;
 use aluminum::config;
@@ -83,3 +86,50 @@ fn it_deletes_the_built_site_on_clean() {
     create_dir(dir_to_clean).expect("Clean Up");
     File::create(format!("{}/.gitkeep", dir_to_clean)).expect("Clean Up");
 }
+
+#[test]
+fn it_spins_up_a_web_server_on_serve_command() {
+    // Create config
+    let site_dir = "tests/tmp/serve-project-built/_site".to_string();
+    let mut config = config::Config::default();
+    config.output_dir = site_dir.clone();
+    // Send config into `serve` command
+    thread::spawn(move || {
+        commands::serve(config).expect("Serve");
+    });
+    // Create HTTP client
+    let client = Client::new();
+    // Check status and contents of response
+    let mut response = client.get("http://localhost:4000/index.html").send().expect("Sending Client Request");
+
+    let mut response_body = String::new();
+    response.read_to_string(&mut response_body).expect("Response Body");
+
+    let mut actual_body = String::new();
+    let mut actual_body_file = File::open(format!("{}/index.html", site_dir)).expect("Actual File");
+    actual_body_file.read_to_string(&mut actual_body).expect("Read Actual");
+
+    assert_eq!(hyper::Ok, response.status);
+    assert_eq!(actual_body.trim(), response_body.trim());
+}
+
+//#[test]
+//fn it_builds_the_project_before_serving_the_site() {
+//    // Create config
+//    let mut config = config::Config::default();
+//    config.output_dir = "tests/tmp/serve-project-non-built/_site".to_string();
+//
+//    // Send config into `serve` command
+//    thread::spawn(move || {
+//        commands::serve(config).expect("Serve");
+//    });
+//    // Make sure _site directory exists in project
+//    // Create HTTP client
+//    let client = Client::new();
+//    // Check status and contents of response
+//    client.get("http://localhost:4000/index.html").send().expect("Sending Client Request");
+//    // Clean up output directory
+//    let mut clean_config = config::Config::default();
+//    clean_config.output_dir = "tests/tmp/serve-project-non-built/_site".to_string();
+//    commands::clean_project(clean_config).expect("Clean Up");
+//}

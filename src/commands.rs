@@ -1,10 +1,15 @@
 use std::io;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::fs;
 use std::fs::{DirBuilder, File};
 use std::path::Path;
+use std::error::Error;
+use std::process;
 use super::generation::PageGenerator;
 use super::config::Config;
+use hyper::server::{Request, Response, Server};
+use hyper::status::StatusCode;
+use hyper::uri::RequestUri;
 
 pub fn new_project(parent_dir: &str) -> Result<(), io::Error> {
     try!(DirBuilder::new().recursive(true).create(parent_dir));
@@ -54,6 +59,58 @@ pub fn build_project(config: Config) -> Result<(), io::Error> {
 
 pub fn clean_project(config: Config) -> Result<(), io::Error> {
     try!(fs::remove_dir_all(config.output_dir));
+
+    Ok(())
+}
+
+pub fn serve(config: Config) -> Result<(), io::Error> {
+    let mut server = match Server::http("127.0.0.1:4000") {
+        Ok(server) => server,
+        Err(what) => {
+            try!(writeln!(io::stderr(), "{}", Error::description(&what)));
+            process::exit(1);
+        }
+    };
+
+    server.handle(move |request: Request, response: Response| {
+        handle_static_file(request, response);
+    });
+
+    Ok(())
+}
+
+fn handle_static_file(request: Request, mut response: Response) -> Result<(), io::Error> {
+    let output_dir = "tests/tmp/serve-project-built/_site";
+
+    let path = match request.uri {
+        RequestUri::AbsolutePath(uri) => uri,
+        _ => {
+            *response.status_mut() = StatusCode::BadRequest;
+            let body = b"<h1>400 Bad Request</h1>";
+            try!(response.send(body));
+            return Ok(())
+        }
+    };
+
+    let file_path = Path::new(output_dir).join(&path[1..]);
+
+    if file_path.exists() && file_path.is_file() {
+        let mut file = try!(File::open(file_path));
+        let mut file_contents = String::new();
+
+        file.read_to_string(&mut file_contents);
+
+        *response.status_mut() = StatusCode::Ok;
+        try!(response.send(&file_contents.into_bytes()));
+        return Ok(())
+    } else {
+        *response.status_mut() = StatusCode::NotFound;
+        let body = b"<h1>404: Not Found</h1>";
+        try!(response.send(body));
+        return Ok(())
+    }
+
+    println!("{:?}", file_path);
 
     Ok(())
 }
