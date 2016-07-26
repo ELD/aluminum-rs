@@ -223,6 +223,6 @@ fn it_builds_the_project_before_serving_the_site() {
     assert_eq!(hyper::Ok, response.status);
 
     let mut clean_config = config::Config::default();
-    clean_config.output_dir = format!("{}/{}", base_dir, pages_path);
+    clean_config.output_dir = format!("{}/{}", base_dir, site_path);
     commands::clean_project(&clean_config).expect("Clean Up");
 }
