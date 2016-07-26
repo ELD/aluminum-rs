@@ -134,8 +134,9 @@ fn the_port_number_can_be_changed() {
 
 #[test]
 fn it_returns_a_404_when_the_route_is_invalid() {
+    let site_dir = "tests/tmp/serve-project-built/_site".to_string();
     let mut config = config::Config::default();
-    config.output_dir = "tests/tmp/serve-project-built/_site".to_string();
+    config.output_dir = site_dir.clone();
     config.port = "4002".to_string();
 
     thread::spawn(move || {
@@ -156,6 +157,48 @@ fn it_returns_a_404_when_the_route_is_invalid() {
 
     assert_eq!(hyper::NotFound, response.status);
     assert_eq!(expected_body_contents.trim(), response_body.trim());
+}
+
+#[test]
+fn it_hits_every_route_in_the_pages_directory() {
+    let site_dir = "tests/tmp/serve-project-multiple/_site".to_string();
+    let port = "4003".to_string();
+    let mut config = config::Config::default();
+    config.output_dir = site_dir.clone();
+    config.port = port.clone();
+
+    thread::spawn(move || {
+        commands::serve(&config).expect("Serve");
+    });
+
+    let server_addr = format!("http://127.0.0.1:{}", port);
+    let mut route = "index.html";
+    let client = Client::new();
+
+    let mut response = client.get(format!("{}/{}", server_addr, route).as_str()).send().expect("Index Route");
+
+    let mut actual_response_contents = String::new();
+    response.read_to_string(&mut actual_response_contents).expect("Actual Response 1");
+
+    let mut expected_response_contents = String::new();
+    let mut expected_response = File::open(format!("{}/{}", site_dir, route)).expect("Actual 1");
+    expected_response.read_to_string(&mut expected_response_contents).expect("Read Expected 1");
+
+    assert_eq!(hyper::Ok, response.status);
+    assert_eq!(expected_response_contents.trim(), actual_response_contents.trim());
+
+    route = "page.html";
+    response = client.get(format!("{}/{}", server_addr, route).as_str()).send().expect("Page Route");
+
+    actual_response_contents = String::new();
+    response.read_to_string(&mut actual_response_contents).expect("Actual Response 2");
+
+    expected_response_contents = String::new();
+    expected_response = File::open(format!("{}/{}", site_dir, route)).expect("Actual 2");
+    expected_response.read_to_string(&mut expected_response_contents).expect("Read Expected 2");
+
+    assert_eq!(hyper::Ok, response.status);
+    assert_eq!(expected_response_contents.trim(), actual_response_contents.trim());
 }
 
 //#[test]

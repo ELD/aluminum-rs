@@ -73,14 +73,15 @@ pub fn serve(config: &Config) -> Result<(), io::Error> {
         }
     };
 
+    let serve_dir = config.output_dir.clone();
     server.handle(move |request: Request, response: Response| {
-        handle_static_file(request, response);
+        handle_static_file(&serve_dir, request, response);
     });
 
     Ok(())
 }
 
-fn handle_static_file(request: Request, mut response: Response) -> Result<(), io::Error> {
+fn handle_static_file(page_dir: &str, request: Request, mut response: Response) -> Result<(), io::Error> {
     let output_dir = "tests/tmp/serve-project-built/_site";
 
     let path = match request.uri {
@@ -93,7 +94,7 @@ fn handle_static_file(request: Request, mut response: Response) -> Result<(), io
         }
     };
 
-    let file_path = Path::new(output_dir).join(&path[1..]);
+    let file_path = Path::new(page_dir).join(&path[1..]);
 
     if file_path.exists() && file_path.is_file() {
         let mut file = try!(File::open(file_path));
