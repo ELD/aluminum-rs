@@ -1,8 +1,5 @@
 sudo: false
-cache:
-    cargo: true
-    directories:
-        - kcov-master
+cache: cargo
 language: rust
 
 addons:
@@ -35,7 +32,7 @@ script:
       cargo test
 
 after_success: >
-  if [[ $TRAVIS_RUST_VERSION = 'stable' && ! -d kcov-master ]]; then
+  if [[ $TRAVIS_RUST_VERSION = 'stable' ]]; then
     wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz
     tar xzf master.tar.gz
     cd kcov-master
@@ -44,6 +41,6 @@ after_success: >
     cmake ..
     make
     cd ../..
-  fi;
-  ./kcov-master/build/src/kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-* &&
-  ./kcov-master/build/src/kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo target/kcov target/debug/lib-*
+    ./kcov-master/build/src/kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-* &&
+    ./kcov-master/build/src/kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo target/kcov target/debug/lib-*
+  fi
