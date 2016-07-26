@@ -4,6 +4,7 @@ use yaml_rust::yaml::YamlLoader;
 pub struct Config {
     pub source_dir: String,
     pub output_dir: String,
+    pub port: String,
 }
 
 impl Config {
@@ -22,6 +23,10 @@ impl Config {
             if let Some(output) = yaml["output"].as_str() {
                 config.output_dir = output.to_string();
             }
+
+            if let Some(port) = yaml["port"].as_str() {
+                config.port = port.to_string();
+            }
         }
 
         config
@@ -33,6 +38,7 @@ impl Default for Config {
         Config {
             source_dir: "pages".to_string(),
             output_dir: "_site".to_string(),
+            port: "4000".to_string(),
         }
     }
 }
@@ -43,7 +49,8 @@ mod tests {
 
     fn good_setup() -> String {
         "source: pages\n\
-         output: _site".to_string()
+         output: _site\n\
+         port: 4000".to_string()
     }
 
     fn bad_setup() -> String {
@@ -57,6 +64,7 @@ mod tests {
 
         assert_eq!("pages", config.source_dir);
         assert_eq!("_site", config.output_dir);
+        assert_eq!("4000", config.port);
     }
 
     #[test]

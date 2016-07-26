@@ -53,7 +53,7 @@ fn it_builds_a_default_project() {
     config.source_dir = source_dir.clone();
     config.output_dir = output_dir.clone();
 
-    commands::build_project(config).expect("Build Project");
+    commands::build_project(&config).expect("Build Project");
 
     let mut fixture_contents = String::new();
     let mut fixture_output_file = File::open(fixture_output_file_path).expect("Fixture File");
@@ -79,7 +79,7 @@ fn it_deletes_the_built_site_on_clean() {
 
     assert!(Path::new(dir_to_clean).exists());
 
-    commands::clean_project(config).expect("Clean Project");
+    commands::clean_project(&config).expect("Clean Project");
 
     assert!(!Path::new(dir_to_clean).exists());
 
@@ -95,7 +95,7 @@ fn it_spins_up_a_web_server_on_serve_command() {
     config.output_dir = site_dir.clone();
     // Send config into `serve` command
     thread::spawn(move || {
-        commands::serve(config).expect("Serve");
+        commands::serve(&config).expect("Serve");
     });
     // Create HTTP client
     let client = Client::new();
@@ -111,6 +111,51 @@ fn it_spins_up_a_web_server_on_serve_command() {
 
     assert_eq!(hyper::Ok, response.status);
     assert_eq!(actual_body.trim(), response_body.trim());
+}
+
+#[test]
+fn the_port_number_can_be_changed() {
+    let port = "4001".to_string();
+    let mut config = config::Config::default();
+    config.output_dir = "tests/tmp/serve-project-built/_site".to_string();
+    config.port = port.clone();
+
+    thread::spawn(move || {
+        commands::serve(&config).expect("Serve");
+    });
+
+    let server_addr = format!("http://127.0.0.1:{}/index.html", port);
+    let client = Client::new();
+
+    let response = client.get(server_addr.as_str()).send().expect("Client Request");
+
+    assert_eq!(hyper::Ok, response.status);
+}
+
+#[test]
+fn it_returns_a_404_when_the_route_is_invalid() {
+    let mut config = config::Config::default();
+    config.output_dir = "tests/tmp/serve-project-built/_site".to_string();
+    config.port = "4002".to_string();
+
+    thread::spawn(move || {
+        commands::serve(&config).expect("Serve");
+    });
+
+    let client = Client::new();
+
+    let mut response = client.get("http://localhost:4002/bad.html").send().expect("Bad Request");
+
+    let mut expected_body_contents = String::new();
+    let mut expected_body = File::open("tests/fixtures/responses/404.html").expect("Open Expected");
+
+    expected_body.read_to_string(&mut expected_body_contents).expect("Read Expected");
+
+    let mut response_body = String::new();
+    response.read_to_string(&mut response_body).expect("Read Actual");
+
+    assert_eq!(hyper::NotFound, response.status);
+    assert_eq!(expected_body_contents.trim(), response_body.trim());
 }
 
 //#[test]

@@ -46,7 +46,8 @@ fn main() {
         }
 
         println!("Building project...");
-        match commands::build_project(Config::from_string(config_file_contents)) {
+        let config = Config::from_string(config_file_contents);
+        match commands::build_project(&config) {
             Ok(_) => {},
             Err(what) => {
                 writeln!(io::stderr(), "Error: {}", Error::description(&what)).expect("Print Error");
@@ -65,7 +66,8 @@ fn main() {
         }
 
         println!("Cleaning project...");
-        match commands::clean_project(Config::from_string(config_file_contents)) {
+        let config = Config::from_string(config_file_contents);
+        match commands::clean_project(&config) {
             Ok(_) | Err(_) => {},
         }
     } else if matches.is_present("serve") {
@@ -81,6 +83,7 @@ fn main() {
         }
 
         println!("Serving project");
-        commands::serve(Config::from_string(config_file_contents)).expect("Serve");
+        let config = Config::from_string(config_file_contents);
+        commands::serve(&config).expect("Serve");
     }
 }

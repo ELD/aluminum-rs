@@ -18,14 +18,14 @@ pub fn new_project(parent_dir: &str) -> Result<(), io::Error> {
 
     let mut config_file = try!(File::create(format!("{}/_config.yml", parent_dir)));
 
-    try!(config_file.write_all(b"source: pages\noutput: _site\n\n"));
+    try!(config_file.write_all(b"source: pages\noutput: _site\nport: 4000\n\n"));
 
     Ok(())
 }
 
-pub fn build_project(config: Config) -> Result<(), io::Error> {
-    let pages_path = &config.source_dir;
-    let output_dir = &config.output_dir;
+pub fn build_project(config: &Config) -> Result<(), io::Error> {
+    let pages_path = &*config.source_dir;
+    let output_dir = &*config.output_dir;
     let mut page_generator = PageGenerator::new();
 
     let directory_iterator = try!(Path::new(pages_path).read_dir());
@@ -57,14 +57,15 @@ pub fn build_project(config: Config) -> Result<(), io::Error> {
     Ok(())
 }
 
-pub fn clean_project(config: Config) -> Result<(), io::Error> {
-    try!(fs::remove_dir_all(config.output_dir));
+pub fn clean_project(config: &Config) -> Result<(), io::Error> {
+    try!(fs::remove_dir_all(&*config.output_dir));
 
     Ok(())
 }
 
-pub fn serve(config: Config) -> Result<(), io::Error> {
-    let mut server = match Server::http("127.0.0.1:4000") {
+pub fn serve(config: &Config) -> Result<(), io::Error> {
+    let server_addr = format!("127.0.0.1:{}", &*config.port);
+    let mut server = match Server::http(server_addr.as_str()) {
         Ok(server) => server,
         Err(what) => {
             try!(writeln!(io::stderr(), "{}", Error::description(&what)));
