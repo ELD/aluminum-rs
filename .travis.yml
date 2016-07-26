@@ -8,6 +8,8 @@ addons:
       - libcurl4-openssl-dev
       - libelf-dev
       - libdw-dev
+      - cmake
+      - gcc
       - binutils-dev
 
 rust:
@@ -24,23 +26,24 @@ branches:
     - master
     - develop
 
-before_script:
-  - |
-      pip install 'travis-cargo<0.2' --user &&
-      export PATH=$HOME/.local/bin:$PATH
-
 script:
   - |
-      travis-cargo build &&
-      travis-cargo test
+      cargo build --release &&
+      cargo test --release
 
 after_success: >
-  if [[ $TRAVIS_RUST_VERSION == 'stable' ]]; then
-    travis-cargo coveralls --no-sudo --verify
-    ./kcov/build/src/kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-*
-    ./kcov/build/src/kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo target/kcov target/debug/lib-*
-  fi
+  if [[ $TRAVIS_RUST_VERSION = 'stable' ]]; then
+    wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
+    tar xzf master.tar.gz &&
+    cd kcov-master &&
+    mkdir build &&
+    cd build &&
+    cmake .. &&
+    make &&
+    sudo make install &&
+    cd ../.. &&
+    rm -rf kcov-master &&
 
-env:
-  global:
-    - TRAVIS_CARGO_NIGHTLY_FEATURE=""
+    kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-*
+    kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo target/kcov target/debug/lib-*
+  fi
