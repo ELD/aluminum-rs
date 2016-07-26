@@ -40,6 +40,6 @@ after_success: >
     cd build &&
     cmake .. &&
     make &&
-    ./kcov/build/src/kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-*
-    ./kcov/build/src/kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo target/kcov target/debug/lib-*
+    ./src/kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-*
+    ./src/kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo target/kcov target/debug/lib-*
   fi
