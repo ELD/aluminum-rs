@@ -201,23 +201,28 @@ fn it_hits_every_route_in_the_pages_directory() {
     assert_eq!(expected_response_contents.trim(), actual_response_contents.trim());
 }
 
-//#[test]
-//fn it_builds_the_project_before_serving_the_site() {
-//    // Create config
-//    let mut config = config::Config::default();
-//    config.output_dir = "tests/tmp/serve-project-non-built/_site".to_string();
-//
-//    // Send config into `serve` command
-//    thread::spawn(move || {
-//        commands::serve(config).expect("Serve");
-//    });
-//    // Make sure _site directory exists in project
-//    // Create HTTP client
-//    let client = Client::new();
-//    // Check status and contents of response
-//    client.get("http://localhost:4000/index.html").send().expect("Sending Client Request");
-//    // Clean up output directory
-//    let mut clean_config = config::Config::default();
-//    clean_config.output_dir = "tests/tmp/serve-project-non-built/_site".to_string();
-//    commands::clean_project(clean_config).expect("Clean Up");
-//}
+#[test]
+fn it_builds_the_project_before_serving_the_site() {
+    let base_dir = "tests/tmp/serve-project-non-built".to_string();
+    let pages_path = "pages";
+    let site_path = "_site";
+    let port = "4004".to_string();
+    let mut config = config::Config::default();
+    config.source_dir = format!("{}/{}", base_dir, pages_path);
+    config.output_dir = format!("{}/{}", base_dir, site_path);
+    config.port = port.clone();
+
+    thread::spawn(move || {
+        commands::serve(&config).expect("Serve");
+    });
+
+    let server_addr = format!("http://localhost:{}/index.html", port);
+    let client = Client::new();
+    let response = client.get(server_addr.as_str()).send().expect("Sending Client Request");
+
+    assert_eq!(hyper::Ok, response.status);
+
+    let mut clean_config = config::Config::default();
+    clean_config.output_dir = format!("{}/{}", base_dir, pages_path);
+    commands::clean_project(&clean_config).expect("Clean Up");
+}

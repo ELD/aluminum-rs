@@ -24,6 +24,7 @@ pub fn new_project(parent_dir: &str) -> Result<(), io::Error> {
 }
 
 pub fn build_project(config: &Config) -> Result<(), io::Error> {
+    println!("Building project into {} directory", config.output_dir);
     let pages_path = &*config.source_dir;
     let output_dir = &*config.output_dir;
     let mut page_generator = PageGenerator::new();
@@ -31,6 +32,7 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
     let directory_iterator = try!(Path::new(pages_path).read_dir());
 
     if !Path::new(output_dir).exists() {
+        println!("Creating output directory: {}", output_dir);
         try!(DirBuilder::new().create(output_dir));
     }
 
@@ -64,6 +66,8 @@ pub fn clean_project(config: &Config) -> Result<(), io::Error> {
 }
 
 pub fn serve(config: &Config) -> Result<(), io::Error> {
+    build_project(&config);
+
     let server_addr = format!("127.0.0.1:{}", &*config.port);
     let mut server = match Server::http(server_addr.as_str()) {
         Ok(server) => server,
@@ -82,8 +86,6 @@ pub fn serve(config: &Config) -> Result<(), io::Error> {
 }
 
 fn handle_static_file(page_dir: &str, request: Request, mut response: Response) -> Result<(), io::Error> {
-    let output_dir = "tests/tmp/serve-project-built/_site";
-
     let path = match request.uri {
         RequestUri::AbsolutePath(uri) => uri,
         _ => {
@@ -111,8 +113,6 @@ fn handle_static_file(page_dir: &str, request: Request, mut response: Response) 
         try!(response.send(body));
         return Ok(())
     }
-
-    println!("{:?}", file_path);
 
     Ok(())
 }
