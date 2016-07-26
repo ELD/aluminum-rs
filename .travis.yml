@@ -28,8 +28,8 @@ branches:
 
 script:
   - |
-      cargo build --release &&
-      cargo test --release
+      cargo build &&
+      cargo test
 
 after_success: >
   if [[ $TRAVIS_RUST_VERSION = 'stable' ]]; then
@@ -41,6 +41,6 @@ after_success: >
     cmake ..
     make
     cd ../..
-    ./kcov-master/build/src/kcov --verify --exclude-pattern=/.cargo target/kcov target/release/aluminum-*
-    ./kcov-master/build/src/kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo target/kcov target/release/lib-*
+    ./kcov-master/build/src/kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-*
+    ./kcov-master/build/src/kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo target/kcov target/debug/lib-*
   fi
