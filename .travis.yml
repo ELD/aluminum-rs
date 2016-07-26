@@ -40,10 +40,6 @@ after_success: >
     cd build &&
     cmake .. &&
     make &&
-    sudo make install &&
-    cd ../.. &&
-    rm -rf kcov-master &&
-
-    kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-*
-    kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo target/kcov target/debug/lib-*
+    ./kcov/build/src/kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-*
+    ./kcov/build/src/kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo target/kcov target/debug/lib-*
   fi
