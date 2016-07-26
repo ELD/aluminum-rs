@@ -1,5 +1,8 @@
 sudo: false
-cache: cargo
+cache:
+    cargo: true
+    directories:
+        - kcov-master
 language: rust
 
 addons:
