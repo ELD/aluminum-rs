@@ -70,10 +70,7 @@ pub fn serve(config: &Config) -> Result<(), io::Error> {
     let server_addr = format!("127.0.0.1:{}", &*config.port);
     let mut server = match Server::http(server_addr.as_str()) {
         Ok(server) => server,
-        Err(what) => {
-            try!(writeln!(io::stderr(), "{}", Error::description(&what)));
-            process::exit(1);
-        }
+        Err(what) => panic!("{}", Error::description(&what))
     };
 
     let serve_dir = config.output_dir.clone();
