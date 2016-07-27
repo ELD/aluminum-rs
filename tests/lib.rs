@@ -226,3 +226,27 @@ fn it_builds_the_project_before_serving_the_site() {
     clean_config.output_dir = format!("{}/{}", base_dir, site_path);
     commands::clean_project(&clean_config).expect("Clean Up");
 }
+
+#[test]
+fn it_returns_400_on_a_bad_request() {
+    let base_dir = "tests/tmp/serve-project-built".to_string();
+    let site_dir = "_site".to_string();
+    let page_dir = "page".to_string();
+    let port = "4005".to_string();
+
+    let mut config = config::Config::default();
+    config.source_dir = format!("{}/{}", base_dir, page_dir);
+    config.output_dir = format!("{}/{}", base_dir, site_dir);
+    config.port = port.clone();
+
+    thread::spawn(move || {
+        commands::serve(&config).expect("Serve");
+    });
+
+    let server_addr = format!("http://localhost:{}", port);
+    let client = Client::new();
+
+    let response = client.post(server_addr.as_str()).send().expect("Send Bad Request");
+
+    assert_eq!(hyper::BadRequest, response.status);
+}

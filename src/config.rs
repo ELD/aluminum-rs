@@ -86,6 +86,13 @@ mod tests {
     }
 
     #[test]
+    fn it_parses_port_number_in_config() {
+        let config = Config::from_string(good_setup());
+
+        assert_eq!("4000", config.port);
+    }
+
+    #[test]
     #[should_panic]
     fn it_panics_on_poorly_formed_file() {
         let config_string = bad_setup();

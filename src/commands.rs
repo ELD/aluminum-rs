@@ -10,6 +10,7 @@ use super::config::Config;
 use hyper::server::{Request, Response, Server};
 use hyper::status::StatusCode;
 use hyper::uri::RequestUri;
+use hyper::method::Method;
 
 pub fn new_project(parent_dir: &str) -> Result<(), io::Error> {
     try!(DirBuilder::new().recursive(true).create(parent_dir));
@@ -24,7 +25,6 @@ pub fn new_project(parent_dir: &str) -> Result<(), io::Error> {
 }
 
 pub fn build_project(config: &Config) -> Result<(), io::Error> {
-    println!("Building project into {} directory", config.output_dir);
     let pages_path = &*config.source_dir;
     let output_dir = &*config.output_dir;
     let mut page_generator = PageGenerator::new();
@@ -32,7 +32,6 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
     let directory_iterator = try!(Path::new(pages_path).read_dir());
 
     if !Path::new(output_dir).exists() {
-        println!("Creating output directory: {}", output_dir);
         try!(DirBuilder::new().create(output_dir));
     }
 
@@ -87,7 +86,7 @@ pub fn serve(config: &Config) -> Result<(), io::Error> {
 
 fn handle_static_file(page_dir: &str, request: Request, mut response: Response) -> Result<(), io::Error> {
     let path = match request.uri {
-        RequestUri::AbsolutePath(uri) => uri,
+        RequestUri::AbsolutePath(ref uri) if request.method == Method::Get => uri,
         _ => {
             *response.status_mut() = StatusCode::BadRequest;
             let body = b"<h1>400 Bad Request</h1>";
