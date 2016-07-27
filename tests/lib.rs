@@ -255,13 +255,8 @@ fn it_returns_400_on_a_bad_request() {
 #[should_panic]
 fn it_panics_on_invalid_server_connection() {
     let mut config = config::Config::default();
-    config.port = "3000".to_string();
-    thread::spawn(move || {
+    config.port = "65536".to_string();
+//    thread::spawn(move || {
         commands::serve(&config).expect("Serve");
-    });
-
-    let mut config2 = config::Config::default();
-    config2.port = "3000".to_string();
-
-    commands::serve(&config2).expect("Serve Again");
+//    });
 }
