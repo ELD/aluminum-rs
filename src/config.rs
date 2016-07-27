@@ -24,8 +24,8 @@ impl Config {
                 config.output_dir = output.to_string();
             }
 
-            if let Some(port) = yaml["port"].as_str() {
-                config.port = port.to_string();
+            if let Some(config_port) = yaml["port"].as_str() {
+                config.port = config_port.to_string();
             }
         }
 
