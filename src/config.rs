@@ -87,7 +87,9 @@ mod tests {
 
     #[test]
     fn it_parses_port_number_in_config() {
-        let config = Config::from_string(good_setup());
+        let config_string = good_setup();
+
+        let config = Config::from_string(config_string);
 
         assert_eq!("4000", config.port);
     }
