@@ -27,7 +27,7 @@ fn it_creates_a_new_project() {
     let mut actual_config_file = File::open(config_path).expect("Actual Config");
 
     expected_config_file.read_to_string(&mut expected_config_file_contents).expect("Read Expected");
-    actual_config_file.read_to_string(&mut actual_config_file_contents).expect("Read Actual"    );
+    actual_config_file.read_to_string(&mut actual_config_file_contents).expect("Read Actual");
 
     assert!(Path::new(&proj_dir).exists());
     assert!(Path::new(&pages_dir).exists());
@@ -71,6 +71,39 @@ fn it_builds_a_default_project() {
 }
 
 #[test]
+fn it_builds_a_project_with_footnote_and_table_support() {
+    let test_proj_dir = "tests/tmp/enhanced-project";
+    let source_dir = format!("{}/pages", test_proj_dir);
+    let output_dir = format!("{}/_site", test_proj_dir);
+    let actual_output_file_path = format!("{}/enhanced.html", output_dir);
+
+    let fixture_proj_dir = "tests/fixtures/enhanced-project";
+    let fixture_output_file_path = format!("{}/_site/enhanced.html", fixture_proj_dir);
+
+    let mut config = config::Config::default();
+
+    config.source_dir = source_dir.clone();
+    config.output_dir = output_dir.clone();
+    config.markdown_options = vec!["tables".to_string(), "footnotes".to_string()];
+
+    commands::build_project(&config).expect("Build Enhanced Project");
+
+    let mut fixture_contents = String::new();
+    let mut fixture_output_file = File::open(fixture_output_file_path).expect("Fixture File");
+
+    fixture_output_file.read_to_string(&mut fixture_contents).expect("Read Fixture File");
+
+    let mut actual_contents = String::new();
+    let mut actual_output_file = File::open(actual_output_file_path).expect("Actual File");
+
+    actual_output_file.read_to_string(&mut actual_contents).expect("Read Actual File");
+
+    assert_eq!(fixture_contents.trim(), actual_contents.trim());
+
+    remove_dir_all(output_dir).expect("Clean Up");
+}
+
+#[test]
 fn it_deletes_the_built_site_on_clean() {
     let dir_to_clean = "tests/tmp/clean-project/_site";
     let mut config = config::Config::default();
@@ -89,17 +122,17 @@ fn it_deletes_the_built_site_on_clean() {
 
 #[test]
 fn it_spins_up_a_web_server_on_serve_command() {
-    // Create config
+    let pages_dir = "tests/tmp/serve-project-built/_site".to_string();
     let site_dir = "tests/tmp/serve-project-built/_site".to_string();
     let mut config = config::Config::default();
+    config.source_dir = pages_dir.clone();
     config.output_dir = site_dir.clone();
-    // Send config into `serve` command
+
     thread::spawn(move || {
         commands::serve(&config).expect("Serve");
     });
-    // Create HTTP client
+
     let client = Client::new();
-    // Check status and contents of response
     let mut response = client.get("http://localhost:4000/index.html").send().expect("Sending Client Request");
 
     let mut response_body = String::new();
@@ -117,6 +150,7 @@ fn it_spins_up_a_web_server_on_serve_command() {
 fn the_port_number_can_be_changed() {
     let port = "4001".to_string();
     let mut config = config::Config::default();
+    config.source_dir = "tests/tmp/serve-project-built/pages".to_string();
     config.output_dir = "tests/tmp/serve-project-built/_site".to_string();
     config.port = port.clone();
 
@@ -134,8 +168,10 @@ fn the_port_number_can_be_changed() {
 
 #[test]
 fn it_returns_a_404_when_the_route_is_invalid() {
+    let pages_dir = "tests/tmp/serve-project-built/pages".to_string();
     let site_dir = "tests/tmp/serve-project-built/_site".to_string();
     let mut config = config::Config::default();
+    config.source_dir = pages_dir.clone();
     config.output_dir = site_dir.clone();
     config.port = "4002".to_string();
 
@@ -161,9 +197,11 @@ fn it_returns_a_404_when_the_route_is_invalid() {
 
 #[test]
 fn it_hits_every_route_in_the_pages_directory() {
+    let page_dir = "tests/tmp/serve-project-multiple/pages".to_string();
     let site_dir = "tests/tmp/serve-project-multiple/_site".to_string();
     let port = "4003".to_string();
     let mut config = config::Config::default();
+    config.source_dir = page_dir.clone();
     config.output_dir = site_dir.clone();
     config.port = port.clone();
 
@@ -231,7 +269,7 @@ fn it_builds_the_project_before_serving_the_site() {
 fn it_returns_400_on_a_bad_request() {
     let base_dir = "tests/tmp/serve-project-built".to_string();
     let site_dir = "_site".to_string();
-    let page_dir = "page".to_string();
+    let page_dir = "pages".to_string();
     let port = "4005".to_string();
 
     let mut config = config::Config::default();
@@ -255,6 +293,8 @@ fn it_returns_400_on_a_bad_request() {
 #[should_panic]
 fn it_panics_on_invalid_server_connection() {
     let mut config = config::Config::default();
+    config.source_dir = "tests/tmp/serve-project-built/pages".to_string();
+    config.output_dir = "tests/tmp/serve-project-built/_site".to_string();
     config.port = "65536".to_string();
     commands::serve(&config).expect("Serve");
 }
