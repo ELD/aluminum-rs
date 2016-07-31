@@ -3,12 +3,12 @@ use std::io::prelude::*;
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::default::Default;
-use pulldown_cmark::Parser;
-use pulldown_cmark::html;
+use pulldown_cmark::{Parser, html, Options};
 
 pub struct PageGenerator {
     input_file: String,
     output_file: String,
+    parse_options: Options,
     wrap_html: bool,
 }
 
@@ -29,6 +29,11 @@ impl PageGenerator {
 
     pub fn set_wrap(&mut self, wrap: bool) -> &mut Self {
         self.wrap_html = wrap;
+        self
+    }
+
+    pub fn set_parse_options(&mut self, parse_options: Options) -> &mut Self {
+        self.parse_options = parse_options;
         self
     }
 
@@ -63,7 +68,7 @@ impl PageGenerator {
 
         try!(input_md_file.read_to_string(&mut file_contents));
 
-        let parser = Parser::new(&file_contents);
+        let parser = Parser::new_ext(&file_contents, self.parse_options);
 
         let mut parsed_html = String::with_capacity(file_contents.len() * 3 / 2);
         html::push_html(&mut parsed_html, parser);
@@ -77,6 +82,7 @@ impl Default for PageGenerator {
         PageGenerator {
             input_file: String::new(),
             output_file: String::new(),
+            parse_options: Options::empty(),
             wrap_html: false,
         }
     }

@@ -5,6 +5,7 @@ pub struct Config {
     pub source_dir: String,
     pub output_dir: String,
     pub port: String,
+    pub markdown_options: Vec<String>
 }
 
 impl Config {
@@ -27,6 +28,12 @@ impl Config {
             if let Some(config_port) = yaml["port"].as_str() {
                 config.port = config_port.to_string();
             }
+
+            if let Some(markdown_options) = yaml["markdown_options"].as_vec() {
+                config.markdown_options = markdown_options.iter()
+                    .filter_map(|option| option.as_str().map(|option| option.to_owned()))
+                    .collect();
+            }
         }
 
         config
@@ -39,6 +46,7 @@ impl Default for Config {
             source_dir: "pages".to_string(),
             output_dir: "_site".to_string(),
             port: "4000".to_string(),
+            markdown_options: Vec::new()
         }
     }
 }
@@ -50,7 +58,10 @@ mod tests {
     fn good_setup() -> String {
         "source: pages\n\
          output: _site\n\
-         port: 4000".to_string()
+         port: 4000\n\
+         markdown_options:\n\
+           - tables\n\
+           - footnotes".to_string()
     }
 
     fn bad_setup() -> String {
@@ -92,6 +103,16 @@ mod tests {
         let config = Config::from_string(config_string);
 
         assert_eq!("4000", config.port);
+    }
+
+    #[test]
+    fn it_parses_markdown_options() {
+        let config_string = good_setup();
+        let expected_options = vec!["tables", "footnotes"];
+
+        let config = Config::from_string(config_string);
+
+        assert_eq!(expected_options, config.markdown_options);
     }
 
     #[test]

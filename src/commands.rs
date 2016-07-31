@@ -4,13 +4,30 @@ use std::fs;
 use std::fs::{DirBuilder, File};
 use std::path::Path;
 use std::error::Error;
-use std::process;
 use super::generation::PageGenerator;
 use super::config::Config;
 use hyper::server::{Request, Response, Server};
 use hyper::status::StatusCode;
 use hyper::uri::RequestUri;
 use hyper::method::Method;
+use pulldown_cmark::{Options, OPTION_ENABLE_TABLES, OPTION_ENABLE_FOOTNOTES};
+
+const DEFAULT_CONFIG_FILE: &'static str = "\
+source: pages
+output: _site
+port: 4000
+markdown_options:
+  - tables
+  - footnotes\n
+";
+
+const BAD_REQUEST: &'static str = "\
+<h1>400 Bad Request</h1>
+";
+
+const NOT_FOUND: &'static str = "\
+<h1>404 Not Found</h1>
+";
 
 pub fn new_project(parent_dir: &str) -> Result<(), io::Error> {
     try!(DirBuilder::new().recursive(true).create(parent_dir));
@@ -19,7 +36,7 @@ pub fn new_project(parent_dir: &str) -> Result<(), io::Error> {
 
     let mut config_file = try!(File::create(format!("{}/_config.yml", parent_dir)));
 
-    try!(config_file.write_all(b"source: pages\noutput: _site\nport: 4000\n\n"));
+    try!(config_file.write_all(DEFAULT_CONFIG_FILE.as_bytes()));
 
     Ok(())
 }
@@ -27,6 +44,16 @@ pub fn new_project(parent_dir: &str) -> Result<(), io::Error> {
 pub fn build_project(config: &Config) -> Result<(), io::Error> {
     let pages_path = &*config.source_dir;
     let output_dir = &*config.output_dir;
+    let mut markdown_options = Options::empty();
+
+    if config.markdown_options.contains(&"footnotes".to_string()) {
+        markdown_options.insert(OPTION_ENABLE_FOOTNOTES);
+    }
+
+    if config.markdown_options.contains(&"tables".to_string()) {
+        markdown_options.insert(OPTION_ENABLE_TABLES);
+    }
+
     let mut page_generator = PageGenerator::new();
 
     let directory_iterator = try!(Path::new(pages_path).read_dir());
@@ -51,6 +78,7 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
             try!(page_generator.set_input_file(source_file.as_ref())
                      .set_output_file(destination_file.as_ref())
                      .set_wrap(true)
+                     .set_parse_options(markdown_options.clone())
                      .generate());
         }
     }
@@ -65,10 +93,10 @@ pub fn clean_project(config: &Config) -> Result<(), io::Error> {
 }
 
 pub fn serve(config: &Config) -> Result<(), io::Error> {
-    build_project(&config);
+    try!(build_project(&config));
 
     let server_addr = format!("127.0.0.1:{}", &*config.port);
-    let mut server = match Server::http(server_addr.as_str()) {
+    let server = match Server::http(server_addr.as_str()) {
         Ok(server) => server,
         Err(what) => panic!("{}", Error::description(&what))
     };
@@ -86,7 +114,7 @@ fn handle_static_file(page_dir: &str, request: Request, mut response: Response) 
         RequestUri::AbsolutePath(ref uri) if request.method == Method::Get => uri,
         _ => {
             *response.status_mut() = StatusCode::BadRequest;
-            let body = b"<h1>400 Bad Request</h1>";
+            let body = BAD_REQUEST.as_bytes();
             try!(response.send(body));
             return Ok(())
         }
@@ -105,7 +133,7 @@ fn handle_static_file(page_dir: &str, request: Request, mut response: Response) 
         return Ok(())
     } else {
         *response.status_mut() = StatusCode::NotFound;
-        let body = b"<h1>404: Not Found</h1>";
+        let body = NOT_FOUND.as_bytes();
         try!(response.send(body));
         return Ok(())
     }

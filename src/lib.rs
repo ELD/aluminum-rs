@@ -3,7 +3,6 @@ extern crate yaml_rust;
 extern crate hyper;
 extern crate log;
 
-// TODO: Remove this once the integration tests are extracted out
 #[cfg(test)]
 extern crate tempdir;
 
