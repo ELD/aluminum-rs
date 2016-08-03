@@ -28,8 +28,8 @@ branches:
 
 script:
   - |
-      cargo build &&
-      cargo test
+      cargo build -j8 &&
+      cargo test -j8
 
 after_success: >
   if [[ $TRAVIS_RUST_VERSION = 'stable' ]]; then

@@ -102,9 +102,15 @@ pub fn serve(config: &Config) -> Result<(), io::Error> {
     };
 
     let serve_dir = config.output_dir.clone();
-    server.handle(move |request: Request, response: Response| {
-        handle_static_file(&serve_dir, request, response);
-    });
+    match server.handle(move |request: Request, response: Response| {
+        match handle_static_file(&serve_dir, request, response) {
+            Ok(_) => {},
+            Err(what) => panic!("{}", Error::description(&what))
+        }
+    }) {
+        Ok(_) => {},
+        Err(what) => panic!("{}", Error::description(&what))
+    }
 
     Ok(())
 }
@@ -126,7 +132,7 @@ fn handle_static_file(page_dir: &str, request: Request, mut response: Response) 
         let mut file = try!(File::open(file_path));
         let mut file_contents = String::new();
 
-        file.read_to_string(&mut file_contents);
+        try!(file.read_to_string(&mut file_contents));
 
         *response.status_mut() = StatusCode::Ok;
         try!(response.send(&file_contents.into_bytes()));
