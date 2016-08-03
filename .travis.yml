@@ -41,6 +41,7 @@ after_success: >
     cmake ..
     make
     cd ../..
+    ls target/debug/
     ./kcov-master/build/src/kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-* &&
     ./kcov-master/build/src/kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo,tests/lib.rs,src/main.rs target/kcov target/debug/lib-*
   fi
