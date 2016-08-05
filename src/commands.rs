@@ -75,8 +75,8 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
         let destination_file = format!("{}/{}.html", output_dir, file_stem);
 
         if file_type.is_file() && file_name.contains(".md") {
-            try!(page_generator.set_input_file(source_file.as_ref())
-                     .set_output_file(destination_file.as_ref())
+            try!(page_generator.set_input_file(source_file.as_str())
+                     .set_output_file(destination_file.as_str())
                      .set_wrap(true)
                      .set_parse_options(markdown_options.clone())
                      .generate());

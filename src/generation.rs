@@ -131,8 +131,8 @@ mod test {
         let html_file_name = temp_dir.clone() + "/test2.html";
 
         let mut page_generator = PageGenerator::new();
-        page_generator.set_input_file(md_file_name.as_ref())
-                      .set_output_file(html_file_name.as_ref());
+        page_generator.set_input_file(md_file_name.as_str())
+                      .set_output_file(html_file_name.as_str());
 
         page_generator.generate().expect("Generate Pages");
     }
