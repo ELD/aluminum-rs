@@ -28,8 +28,7 @@ branches:
 
 script:
   - |
-      cargo build -j8 &&
-      cargo test -j8
+      RUSTFLAGS="$RUSTFLAGS -C link-dead-code" cargo test -j8
 
 after_success: >
   if [[ $TRAVIS_RUST_VERSION = 'stable' ]]; then
