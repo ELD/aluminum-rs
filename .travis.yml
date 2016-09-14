@@ -32,15 +32,14 @@ script:
 
 after_success: >
   if [[ $TRAVIS_RUST_VERSION = 'stable' ]]; then
-    wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz
-    tar xzf master.tar.gz
-    cd kcov-master
+    wget https://github.com/SimonKagstrom/kcov/archive/v33.tar.gz
+    tar xzf v33.tar.gz
+    cd kcov-33
     mkdir build
     cd build
     cmake ..
     make
     cd ../..
-    ls target/debug/
-    ./kcov-master/build/src/kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-* &&
-    ./kcov-master/build/src/kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo,tests/lib.rs,src/main.rs target/kcov target/debug/lib-*
+    ./kcov-33/build/src/kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-* &&
+    ./kcov-33/build/src/kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo,tests/lib.rs,src/main.rs target/kcov target/debug/lib-*
   fi

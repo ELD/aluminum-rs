@@ -1,5 +1,5 @@
 use std::io;
-use std::io::prelude::*;
+use std::io::prelude::{Write, Read};
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::default::Default;
@@ -91,7 +91,7 @@ impl Default for PageGenerator {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::io::prelude::*;
+    use std::io::prelude::{Read, Write};
     use std::fs::File;
     use std::env::temp_dir;
     use tempdir::TempDir;
