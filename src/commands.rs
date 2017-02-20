@@ -18,7 +18,7 @@ output: _site
 port: 4000
 markdown_options:
   - tables
-  - footnotes\n
+  - footnotes
 ";
 
 const BAD_REQUEST: &'static str = "\
@@ -143,6 +143,4 @@ fn handle_static_file(page_dir: &str, request: Request, mut response: Response) 
         try!(response.send(body));
         return Ok(())
     }
-
-    Ok(())
 }
