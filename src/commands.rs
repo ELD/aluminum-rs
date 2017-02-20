@@ -30,13 +30,13 @@ const NOT_FOUND: &'static str = "\
 ";
 
 pub fn new_project(parent_dir: &str) -> Result<(), io::Error> {
-    try!(DirBuilder::new().recursive(true).create(parent_dir));
+    DirBuilder::new().recursive(true).create(parent_dir)?;
 
-    try!(DirBuilder::new().recursive(false).create(format!("{}/pages", parent_dir)));
+    DirBuilder::new().recursive(false).create(format!("{}/pages", parent_dir))?;
 
-    let mut config_file = try!(File::create(format!("{}/_config.yml", parent_dir)));
+    let mut config_file = File::create(format!("{}/_config.yml", parent_dir))?;
 
-    try!(config_file.write_all(DEFAULT_CONFIG_FILE.as_bytes()));
+    config_file.write_all(DEFAULT_CONFIG_FILE.as_bytes())?;
 
     Ok(())
 }
@@ -56,15 +56,15 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
 
     let mut page_generator = PageGenerator::new();
 
-    let directory_iterator = try!(Path::new(pages_path).read_dir());
+    let directory_iterator = Path::new(pages_path).read_dir()?;
 
     if !Path::new(output_dir).exists() {
-        try!(DirBuilder::new().create(output_dir));
+        DirBuilder::new().create(output_dir)?;
     }
 
     for entry in directory_iterator {
-        let file = try!(entry);
-        let file_type = try!(file.file_type());
+        let file = entry?;
+        let file_type = file.file_type()?;
 
         let file_name = file.file_name().into_string().expect("File Name");
 
@@ -75,11 +75,11 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
         let destination_file = format!("{}/{}.html", output_dir, file_stem);
 
         if file_type.is_file() && file_name.contains(".md") {
-            try!(page_generator.set_input_file(source_file.as_str())
-                     .set_output_file(destination_file.as_str())
-                     .set_wrap(true)
-                     .set_parse_options(markdown_options.clone())
-                     .generate());
+            page_generator.set_input_file(source_file.as_str())
+                .set_output_file(destination_file.as_str())
+                .set_wrap(true)
+                .set_parse_options(markdown_options.clone())
+                .generate()?;
         }
     }
 
@@ -87,13 +87,13 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
 }
 
 pub fn clean_project(config: &Config) -> Result<(), io::Error> {
-    try!(fs::remove_dir_all(&*config.output_dir));
+    fs::remove_dir_all(&*config.output_dir)?;
 
     Ok(())
 }
 
 pub fn serve(config: &Config) -> Result<(), io::Error> {
-    try!(build_project(&config));
+    build_project(&config)?;
 
     let server_addr = format!("127.0.0.1:{}", &*config.port);
     let server = match Server::http(server_addr.as_str()) {
@@ -121,7 +121,7 @@ fn handle_static_file(page_dir: &str, request: Request, mut response: Response) 
         _ => {
             *response.status_mut() = StatusCode::BadRequest;
             let body = BAD_REQUEST.as_bytes();
-            try!(response.send(body));
+            response.send(body)?;
             return Ok(())
         }
     };
@@ -129,18 +129,18 @@ fn handle_static_file(page_dir: &str, request: Request, mut response: Response) 
     let file_path = Path::new(page_dir).join(&path[1..]);
 
     if file_path.exists() && file_path.is_file() {
-        let mut file = try!(File::open(file_path));
+        let mut file = File::open(file_path)?;
         let mut file_contents = String::new();
 
-        try!(file.read_to_string(&mut file_contents));
+        file.read_to_string(&mut file_contents)?;
 
         *response.status_mut() = StatusCode::Ok;
-        try!(response.send(&file_contents.into_bytes()));
+        response.send(&file_contents.into_bytes())?;
         return Ok(())
     } else {
         *response.status_mut() = StatusCode::NotFound;
         let body = NOT_FOUND.as_bytes();
-        try!(response.send(body));
+        response.send(body)?;
         return Ok(())
     }
 }
