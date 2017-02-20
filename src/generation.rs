@@ -38,7 +38,7 @@ impl PageGenerator {
     }
 
     pub fn generate(&self) -> Result<(), io::Error> {
-        let mut parsed_html = try!(self.md_to_html());
+        let mut parsed_html = self.md_to_html()?;
 
         if self.wrap_html {
             parsed_html = "<!DOCTYPE html>\n\
@@ -51,22 +51,22 @@ impl PageGenerator {
                  </html>"
         }
 
-        let mut output_file = try!(OpenOptions::new()
-                                            .read(true)
-                                            .write(true)
-                                            .create(true)
-                                            .open(&self.output_file));
+        let mut output_file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(&self.output_file)?;
 
-        try!(output_file.write_all(&parsed_html.as_bytes()));
+        output_file.write_all(&parsed_html.as_bytes())?;
 
         Ok(())
     }
 
     fn md_to_html(&self) -> Result<String, io::Error> {
         let mut file_contents = String::new();
-        let mut input_md_file = try!(File::open(&self.input_file));
+        let mut input_md_file = File::open(&self.input_file)?;
 
-        try!(input_md_file.read_to_string(&mut file_contents));
+        input_md_file.read_to_string(&mut file_contents)?;
 
         let parser = Parser::new_ext(&file_contents, self.parse_options);
 
