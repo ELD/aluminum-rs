@@ -58,7 +58,7 @@ fn run_build_tests(test_name: &str, config_options: Vec<String>) -> Result<(), i
     let mut config = config::Config::default();
     let tempdir = TempDir::new(test_name).expect("Failed to create temporary directory under test");
 
-    config.source_dir = format!("tests/fixtures/{}/pages", test_name);
+    config.source_dir = format!("tests/fixtures/{}", test_name);
     config.output_dir = tempdir.path().to_str().expect("Can't convert to string").to_string();
     config.markdown_options = config_options;
 
@@ -66,18 +66,24 @@ fn run_build_tests(test_name: &str, config_options: Vec<String>) -> Result<(), i
 
     if result.is_ok() {
         let target_files = WalkDir::new(&target)
-            .into_iter()
-            .filter_map(|e| e.ok())
-            .filter(|e| e.file_type().is_file());
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.file_type().is_file());
 
         for file in target_files {
             let tmp_path = file.path().strip_prefix(&target).expect("Couldn't get tmp_file path");
 
             let mut expected = String::new();
-            File::open(&file.path()).expect("Couldn't open expected file").read_to_string(&mut expected).expect("Couldn't read to string.");
+            File::open(&file.path())
+                .expect("Couldn't open expected file")
+                .read_to_string(&mut expected)
+                .expect("Couldn't read to string.");
 
             let mut actual = String::new();
-            File::open(&Path::new(&config.output_dir).join(tmp_path)).expect("Couldn't open actual file").read_to_string(&mut actual).expect("Couldn't read to string.");
+            File::open(&Path::new(&config.output_dir).join(tmp_path))
+                .expect("Couldn't open actual file")
+                .read_to_string(&mut actual)
+                .expect("Couldn't read to string.");
 
             assert_diff!(&expected, &actual, " ", 0);
         }
@@ -93,12 +99,16 @@ fn run_serve_tests(test_name: &str, mut config: config::Config, expected_status:
     let tempdir = TempDir::new(test_name).expect("Failed to create temporary directory under test");
     let port = config.port.clone();
 
-    config.source_dir = format!("tests/fixtures/{}/pages", test_name);
+    config.source_dir = format!("tests/fixtures/{}", test_name);
     config.output_dir = tempdir.path().to_str().expect("Can't convert tempdir path to string").to_string();
 
     thread::spawn(move || {
         commands::serve(&config).expect("Serve Command");
     });
+
+    /* FIXME: This is a dirty hack to make sure the server is started before running the request and
+        FIXME: making the proper assertions. I don't like this one bit... */
+    thread::sleep(std::time::Duration::from_millis(50));
 
     // Walk through _site dir, check file contents against HTTP served body
     let target_files = WalkDir::new(&target)
@@ -200,14 +210,14 @@ fn it_hits_every_route_in_the_pages_directory() {
 #[test]
 fn it_builds_the_project_before_serving_the_site() {
     let base_dir = "tests/fixtures/serve-project-non-built".to_string();
-    let pages_path = "pages";
     let site_path = "_site";
     let port = "4004".to_string();
     let mut config = config::Config::default();
-    config.source_dir = format!("{}/{}", base_dir, pages_path);
+    config.source_dir = format!("{}", base_dir);
     config.output_dir = format!("{}/{}", base_dir, site_path);
     config.port = port.clone();
 
+    println!("Doing a thing: {}", format!("{}/{}", base_dir, site_path));
     assert!(!Path::new(&format!("{}/{}", base_dir, site_path)).exists());
 
     thread::spawn(move || {
@@ -229,23 +239,27 @@ fn it_builds_the_project_before_serving_the_site() {
 
 #[test]
 fn it_returns_400_on_a_bad_request() {
-    let base_dir = "tests/fixtures/serve-simple-project-built".to_string();
-    let site_dir = "_site".to_string();
-    let page_dir = "pages".to_string();
+    let target_dir = TempDir::new("serve-simple-project-built")
+        .expect("Failed to create the directory under test");
+
     let port = "4005".to_string();
 
     let mut config = config::Config::default();
-    config.source_dir = format!("{}/{}", base_dir, page_dir);
-    config.output_dir = format!("{}/{}", base_dir, site_dir);
+    config.source_dir = ".".to_string();
+    config.output_dir = target_dir.path().to_str().expect("Could not convert path to string").to_string();
     config.port = port.clone();
 
     thread::spawn(move || {
         commands::serve(&config).expect("Serve");
     });
 
-    let server_addr = format!("http://localhost:{}", port);
+    // This is a dirty hack to make sure the server is started before running the request and
+    // making the proper assertions. I don't like this one bit...
+    thread::sleep(std::time::Duration::from_millis(250));
+    let server_addr = format!("http://localhost:{}/pages/index.html", port);
     let client = Client::new();
 
+    println!("Sending bad POST request to {}", server_addr);
     let response = client.post(server_addr.as_str()).send().expect("Send Bad Request");
 
     assert_eq!(hyper::BadRequest, response.status);
@@ -254,9 +268,11 @@ fn it_returns_400_on_a_bad_request() {
 #[test]
 #[should_panic]
 fn it_panics_on_invalid_server_connection() {
+    let targetdir = TempDir::new("panics-on-invalid-conn").expect("Couldn't create directory under test");
+
     let mut config = config::Config::default();
-    config.source_dir = "tests/target/serve-simple-project-built/pages".to_string();
-    config.output_dir = "tests/target/serve-simple-project-built/_site".to_string();
+    config.source_dir = "tests/fixtures/serve-simple-project-built".to_string();
+    config.output_dir = targetdir.path().to_str().expect("Could not get str from path").to_string();
     config.port = "65536".to_string();
     commands::serve(&config).expect("Serve");
 }
