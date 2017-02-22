@@ -10,6 +10,7 @@ use hyper::server::{Request, Response, Server};
 use hyper::status::StatusCode;
 use hyper::uri::RequestUri;
 use hyper::method::Method;
+use walkdir::WalkDir;
 use pulldown_cmark::{Options, OPTION_ENABLE_TABLES, OPTION_ENABLE_FOOTNOTES};
 
 const DEFAULT_CONFIG_FILE: &'static str = "\
@@ -56,30 +57,45 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
 
     let mut page_generator = PageGenerator::new();
 
-    let directory_iterator = Path::new(pages_path).read_dir()?;
+    let directory_iterator = WalkDir::new(pages_path)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.file_type().is_file() && !e.file_name().to_str().unwrap().starts_with("_"));
 
     if !Path::new(output_dir).exists() {
         DirBuilder::new().create(output_dir)?;
     }
 
-    for entry in directory_iterator {
-        let file = entry?;
-        let file_type = file.file_type()?;
+    for file in directory_iterator {
+        // Name of the file?
+        let file_name = file.file_name().to_str().unwrap().to_string();
 
-        let file_name = file.file_name().into_string().expect("File Name");
-
-        let source_file = format!("{}/{}", pages_path, file_name);
-
+        // File stem of thing.md -> thing
         let file_stem = file.path().file_stem().expect("File Stem").to_string_lossy().into_owned();
 
-        let destination_file = format!("{}/{}.html", output_dir, file_stem);
+        let destination_file = format!("{}/{}", output_dir, file
+            .path()
+            .strip_prefix(pages_path)
+            .unwrap()
+            .with_extension("html")
+            .display()
+        );
 
-        if file_type.is_file() && file_name.contains(".md") {
-            page_generator.set_input_file(source_file.as_str())
+        fs::create_dir_all(Path::new(&destination_file).parent().unwrap());
+
+        if file_name.contains(".md") {
+            page_generator.set_input_file(file.path().to_str().expect("Couldn't convert for some reason"))
                 .set_output_file(destination_file.as_str())
                 .set_wrap(true)
                 .set_parse_options(markdown_options.clone())
                 .generate()?;
+        } else if file_name.contains(".html") {
+            let output_file_name = format!("{}/{}", config.output_dir, file_name);
+            let output_file_path = Path::new(&output_file_name);
+
+            let output_file = File::create(Path::new(&output_file_path))?;
+
+            fs::copy(file.path(), output_file_path);
         }
     }
 

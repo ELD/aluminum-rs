@@ -1,4 +1,4 @@
-source: pages
+source: .
 output: _site
 port: 4000
 markdown_options:
