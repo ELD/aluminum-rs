@@ -70,9 +70,6 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
         // Name of the file?
         let file_name = file.file_name().to_str().unwrap().to_string();
 
-        // File stem of thing.md -> thing
-        let file_stem = file.path().file_stem().expect("File Stem").to_string_lossy().into_owned();
-
         let destination_file = format!("{}/{}", output_dir, file
             .path()
             .strip_prefix(pages_path)
@@ -81,7 +78,7 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
             .display()
         );
 
-        fs::create_dir_all(Path::new(&destination_file).parent().unwrap());
+        fs::create_dir_all(Path::new(&destination_file).parent().unwrap()).unwrap();
 
         if file_name.contains(".md") {
             page_generator.set_input_file(file.path().to_str().expect("Couldn't convert for some reason"))
@@ -93,9 +90,7 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
             let output_file_name = format!("{}/{}", config.output_dir, file_name);
             let output_file_path = Path::new(&output_file_name);
 
-            let output_file = File::create(Path::new(&output_file_path))?;
-
-            fs::copy(file.path(), output_file_path);
+            fs::copy(file.path(), output_file_path).unwrap();
         }
     }
 
