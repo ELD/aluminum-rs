@@ -27,19 +27,6 @@ branches:
     - develop
 
 script:
-  - |
-      RUSTFLAGS="$RUSTFLAGS -C link-dead-code" cargo test -j8
+  - cargo test -j8
 
-after_success: >
-  if [[ $TRAVIS_RUST_VERSION = 'stable' ]]; then
-    wget https://github.com/SimonKagstrom/kcov/archive/v33.tar.gz
-    tar xzf v33.tar.gz
-    cd kcov-33
-    mkdir build
-    cd build
-    cmake ..
-    make
-    cd ../..
-    ./kcov-33/build/src/kcov --verify --exclude-pattern=/.cargo target/kcov target/debug/aluminum-* &&
-    ./kcov-33/build/src/kcov --coveralls-id=$TRAVIS_JOB_ID --verify --exclude-pattern=/.cargo,tests/lib.rs,src/main.rs target/kcov target/debug/lib-*
-  fi
+after_success: bash ./ci/check_code_coverage.sh

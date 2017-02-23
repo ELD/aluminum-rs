@@ -33,8 +33,7 @@ install:
 build: false
 
 test_script:
-  - cargo build --verbose
-  - cargo test
+  - cargo test -j4
 
 branches:
   only:
