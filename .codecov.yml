@@ -1,0 +1,7 @@
+codecov:
+  ci:
+    - travis-ci
+coverage:
+  range: 80..100
+  round: nearest
+  precision: 2
