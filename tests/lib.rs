@@ -108,7 +108,7 @@ fn run_serve_tests(test_name: &str, mut config: config::Config, expected_status:
 
     /* FIXME: This is a dirty hack to make sure the server is started before running the request and
         FIXME: making the proper assertions. I don't like this one bit... */
-    thread::sleep(std::time::Duration::from_millis(50));
+    thread::sleep(std::time::Duration::from_millis(250));
 
     // Walk through _site dir, check file contents against HTTP served body
     let target_files = WalkDir::new(&target)
@@ -217,7 +217,6 @@ fn it_builds_the_project_before_serving_the_site() {
     config.output_dir = format!("{}/{}", base_dir, site_path);
     config.port = port.clone();
 
-    println!("Doing a thing: {}", format!("{}/{}", base_dir, site_path));
     assert!(!Path::new(&format!("{}/{}", base_dir, site_path)).exists());
 
     thread::spawn(move || {
@@ -226,6 +225,8 @@ fn it_builds_the_project_before_serving_the_site() {
 
     let server_addr = format!("http://localhost:{}/index.html", port);
     let client = Client::new();
+
+    thread::sleep(std::time::Duration::from_millis(250));
     let response = client.get(server_addr.as_str()).send().expect("Sending Client Request");
 
     assert_eq!(hyper::Ok, response.status);
@@ -255,11 +256,10 @@ fn it_returns_400_on_a_bad_request() {
 
     // This is a dirty hack to make sure the server is started before running the request and
     // making the proper assertions. I don't like this one bit...
-    thread::sleep(std::time::Duration::from_millis(250));
     let server_addr = format!("http://localhost:{}/pages/index.html", port);
     let client = Client::new();
 
-    println!("Sending bad POST request to {}", server_addr);
+    thread::sleep(std::time::Duration::from_millis(250));
     let response = client.post(server_addr.as_str()).send().expect("Send Bad Request");
 
     assert_eq!(hyper::BadRequest, response.status);
