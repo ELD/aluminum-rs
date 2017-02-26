@@ -210,14 +210,16 @@ fn it_hits_every_route_in_the_pages_directory() {
 #[test]
 fn it_builds_the_project_before_serving_the_site() {
     let base_dir = "tests/fixtures/serve-project-non-built".to_string();
-    let site_path = "_site";
+    let tempdir = TempDir::new("build-before-serve").expect("Couldn't create temporary directory under test");
+    let site_path = tempdir.path().to_str().expect("Can't convert tempdir path to string").to_string();
     let port = "4004".to_string();
+
     let mut config = config::Config::default();
-    config.source_dir = format!("{}", base_dir);
-    config.output_dir = format!("{}/{}", base_dir, site_path);
+    config.source_dir = base_dir.clone();
+    config.output_dir = site_path.clone();
     config.port = port.clone();
 
-    assert!(!Path::new(&format!("{}/{}", base_dir, site_path)).exists());
+    assert!(!Path::new(&(site_path.clone() + "/index.html")).exists());
 
     thread::spawn(move || {
         commands::serve(&config).expect("Serve");
@@ -232,10 +234,10 @@ fn it_builds_the_project_before_serving_the_site() {
     assert_eq!(hyper::Ok, response.status);
 
     let mut clean_config = config::Config::default();
-    clean_config.output_dir = format!("{}/{}", base_dir, site_path);
+    clean_config.output_dir = site_path.clone();
 
     commands::clean_project(&clean_config).expect("Clean Up");
-    assert!(!Path::new(&format!("{}/{}", base_dir, site_path)).exists());
+    assert!(!Path::new(&(site_path.clone() + "/index.html")).exists());
 }
 
 #[test]
@@ -246,7 +248,7 @@ fn it_returns_400_on_a_bad_request() {
     let port = "4005".to_string();
 
     let mut config = config::Config::default();
-    config.source_dir = ".".to_string();
+    config.source_dir = "tests/fixtures/serve-simple-project-built".to_string();
     config.output_dir = target_dir.path().to_str().expect("Could not convert path to string").to_string();
     config.port = port.clone();
 
