@@ -21,7 +21,6 @@ clap = "^2"
 pulldown-cmark = "^0"
 yaml-rust = "^0"
 hyper = "^0"
-log = "^0"
 walkdir = "^1"
 
 [dev-dependencies]
