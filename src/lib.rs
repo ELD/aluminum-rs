@@ -1,7 +1,6 @@
 extern crate pulldown_cmark;
 extern crate yaml_rust;
 extern crate hyper;
-extern crate log;
 extern crate walkdir;
 
 #[cfg(test)]
