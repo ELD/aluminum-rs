@@ -66,15 +66,15 @@ fn run_build_tests(test_name: &str, config_options: Vec<String>) -> Result<(), i
 
     if result.is_ok() {
         let target_files = WalkDir::new(&target)
-        .into_iter()
-        .filter_map(|e| e.ok())
-        .filter(|e| e.file_type().is_file());
+            .into_iter()
+            .filter_map(|e| e.ok())
+            .filter(|e| e.file_type().is_file());
 
-        for file in target_files {
-            let tmp_path = file.path().strip_prefix(&target).expect("Couldn't get tmp_file path");
+        for target_file in target_files {
+            let tmp_path = target_file.path().strip_prefix(&target).expect("Couldn't get tmp_file path");
 
             let mut expected = String::new();
-            File::open(&file.path())
+            File::open(&target_file.path())
                 .expect("Couldn't open expected file")
                 .read_to_string(&mut expected)
                 .expect("Couldn't read to string.");
@@ -86,6 +86,17 @@ fn run_build_tests(test_name: &str, config_options: Vec<String>) -> Result<(), i
                 .expect("Couldn't read to string.");
 
             assert_diff!(&expected, &actual, " ", 0);
+        }
+
+        let temp_files = WalkDir::new(&tempdir)
+            .into_iter()
+            .filter_map(|e| e.ok())
+            .filter(|e| e.file_type().is_file());
+
+        for temp_file in temp_files {
+            let target_path = Path::new(&target).join(&temp_file.path().strip_prefix(&tempdir).expect("Unable to strip prefix"));
+
+            File::open(&target_path).expect(&format!("File {:?} should not be copied in the build command", temp_file));
         }
     }
 
@@ -148,6 +159,11 @@ fn it_creates_a_new_project() {
 #[test]
 fn it_builds_a_default_project() {
     run_build_tests("default-project", Vec::new()).expect("Failed to build a default project");
+}
+
+#[test]
+fn it_ignores_files_with_underscores_when_building_the_project() {
+    run_build_tests("underscore-files", vec![]).expect("Failed to ignore underscored files");
 }
 
 #[test]
