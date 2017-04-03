@@ -130,7 +130,13 @@ pub fn serve(config: &Config) -> Result<(), io::Error> {
 
 fn handle_static_file(page_dir: &str, request: Request, mut response: Response) -> Result<(), io::Error> {
     let path = match request.uri {
-        RequestUri::AbsolutePath(ref uri) if request.method == Method::Get => uri,
+        RequestUri::AbsolutePath(ref uri) if request.method == Method::Get => {
+            if uri == "/" {
+                "/index.html"
+            } else {
+                uri
+            }
+        },
         _ => {
             *response.status_mut() = StatusCode::BadRequest;
             let body = BAD_REQUEST.as_bytes();

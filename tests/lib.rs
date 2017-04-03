@@ -294,3 +294,32 @@ fn it_panics_on_invalid_server_connection() {
     config.port = "65536".to_string();
     commands::serve(&config).expect("Serve");
 }
+
+#[test]
+fn it_returns_the_index_page_as_the_root_route() {
+    let mut config = config::Config::default();
+    let tempdir = TempDir::new("default-project").expect("Failed to create temporary directory under test");
+    let output_dir = tempdir.path().to_str().expect("Could not convert path to string").to_string();
+
+    config.port = "4006".to_string();
+    config.source_dir = "tests/target/default-project".to_string();
+    config.output_dir = output_dir.clone();
+
+    thread::spawn(move || commands::serve(&config));
+
+    thread::sleep(std::time::Duration::from_millis(250));
+
+    let client = Client::new();
+    let mut response = client.get("http://localhost:4006").send().expect("Sending Client Request");
+
+    let mut response_body = String::new();
+    response.read_to_string(&mut response_body).expect("Response Body");
+
+    let mut expected = String::new();
+    File::open(Path::new(&(output_dir + "/index.html")))
+        .expect("Couldn't open file")
+        .read_to_string(&mut expected).expect("Could not read file contents");
+
+    assert_diff!(&expected, &response_body, " ", 0);
+    assert_eq!(hyper::Ok, response.status);
+}
