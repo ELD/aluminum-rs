@@ -60,7 +60,9 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
     let directory_iterator = WalkDir::new(pages_path)
         .into_iter()
         .filter_map(|e| e.ok())
-        .filter(|e| e.file_type().is_file() && !e.file_name().to_str().unwrap().starts_with("_"));
+        .filter(|e| e.file_type().is_file() &&
+            !e.file_name().to_str().unwrap().starts_with("_") &&
+            !(e.path().to_str().unwrap().contains("/_") || e.path().to_str().unwrap().contains("\\_")));
 
     if !Path::new(output_dir).exists() {
         DirBuilder::new().create(output_dir)?;
@@ -115,11 +117,11 @@ pub fn serve(config: &Config) -> Result<(), io::Error> {
     let serve_dir = config.output_dir.clone();
     match server.handle(move |request: Request, response: Response| {
         match handle_static_file(&serve_dir, request, response) {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(what) => panic!("{}", Error::description(&what))
         }
     }) {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(what) => panic!("{}", Error::description(&what))
     }
 
