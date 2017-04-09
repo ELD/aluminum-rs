@@ -16,7 +16,7 @@ if [[ $TRAVIS_RUST_VERSION = 'stable' ]]; then
     mkdir -p target/cov/merged
     tmp/usr/local/bin/kcov --exclude-pattern=/.cargo,/usr/lib,tests/ --verify target/cov/aluminum target/debug/aluminum-*[^d]
     tmp/usr/local/bin/kcov --exclude-pattern=/.cargo,/usr/lib,tests/ --verify target/cov/lib target/debug/lib-*[^d]
-    tmp/usr/local/bin/kcov --merge target/cov/merged target/cov/aluminum target/cov/lib
+    tmp/usr/local/bin/kcov --exclude-pattern=/.cargo,/usr/lib,tests/ --merge target/cov/merged target/cov/aluminum target/cov/lib
 
     bash <(curl -s https://codecov.io/bash) -s target/cov/merged
 fi
