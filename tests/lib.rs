@@ -152,9 +152,25 @@ fn run_serve_tests(test_name: &str, mut config: config::Config, expected_status:
 }
 
 #[test]
-fn it_creates_a_new_project() {
-    run_create_tests("new-project").expect("Project creation error");
+fn it_builds_a_site_with_ignored_files() {
+    // TODO
 }
+
+#[test]
+fn it_builds_all_non_underscore_files() {
+    // TODO
+}
+
+#[test]
+fn it_deletes_the_built_site_on_clean() {
+    let dir_to_clean = "tests/tmp/clean-project/_site";
+    let mut config = config::Config::default();
+
+    config.output_dir = "tests/tmp/clean-project/_site".to_string();
+
+    assert!(Path::new(dir_to_clean).exists());
+
+    commands::clean_project(&config).expect("Clean Project");
 
 #[test]
 fn it_builds_a_default_project() {
