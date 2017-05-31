@@ -1,9 +1,23 @@
 use std::io;
-use std::io::prelude::{Write, Read};
+use std::io::prelude::Read;
 use std::fs::File;
-use std::fs::OpenOptions;
 use std::default::Default;
+
 use pulldown_cmark::{Parser, html, Options};
+
+use regex::Regex;
+
+use yaml_rust::YamlLoader;
+use yaml_rust::yaml::Yaml;
+
+lazy_static! {
+    static ref FRONT_MATTER_REGEX: Regex = Regex::new(r"(?s)^(?:---)\s+(.*)\s+(?:---)\s+(.*)").unwrap();
+}
+
+pub struct Page {
+    pub front_matter: Yaml,
+    pub contents: String,
+}
 
 pub struct PageGenerator {
     input_file: String,
@@ -37,37 +51,24 @@ impl PageGenerator {
         self
     }
 
-    pub fn generate(&self) -> Result<(), io::Error> {
-        let mut parsed_html = self.md_to_html()?;
+    pub fn parse_file(&self) -> Result<Page, io::Error> {
+        let mut file_contents = String::new();
+        File::open(&self.input_file)?.read_to_string(&mut file_contents)?;
 
-        if self.wrap_html {
-            parsed_html = "<!DOCTYPE html>\n\
-             <html>\n\
-             <head>\n\
-             <title>Aluminum Page</title>\n\
-             </head>\n\
-             <body>\n".to_string() + parsed_html.as_ref() +
-                "</body>\n\
-                 </html>"
-        }
+        let (front_matter, contents) = if FRONT_MATTER_REGEX.is_match(&file_contents) {
+            let captures = FRONT_MATTER_REGEX.captures(&file_contents).expect("Regex failed despite a match");
+            (YamlLoader::load_from_str(&captures[1]).expect("Could not load YAML")[0].clone(), captures[2].to_string())
+        } else {
+            (Yaml::Null, file_contents)
+        };
 
-        let mut output_file = OpenOptions::new()
-            .read(true)
-            .write(true)
-            .create(true)
-            .open(&self.output_file)?;
-
-        output_file.write_all(&parsed_html.as_bytes())?;
-
-        Ok(())
+        Ok(Page {
+            front_matter: front_matter,
+            contents: self.md_to_html(&contents).expect("Could not generate Markdown")
+        })
     }
 
-    fn md_to_html(&self) -> Result<String, io::Error> {
-        let mut file_contents = String::new();
-        let mut input_md_file = File::open(&self.input_file)?;
-
-        input_md_file.read_to_string(&mut file_contents)?;
-
+    fn md_to_html(&self, file_contents: &str) -> Result<String, io::Error> {
         let parser = Parser::new_ext(&file_contents, self.parse_options);
 
         let mut parsed_html = String::with_capacity(file_contents.len() * 3 / 2);
@@ -91,9 +92,12 @@ impl Default for PageGenerator {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::io::prelude::{Read, Write};
+
+    use std::io::prelude::Write;
     use std::fs::File;
     use std::env::temp_dir;
+    use std::collections::BTreeMap;
+
     use tempdir::TempDir;
 
     #[test]
@@ -106,21 +110,48 @@ mod test {
 
         writeln!(file, "# This is a test").expect("Write Markdown");
 
-        PageGenerator::new()
+        let actual = PageGenerator::new()
             .set_input_file(md_file_name.to_str().expect("Input File"))
             .set_output_file(html_file_name.to_str().expect("Output File"))
             .set_wrap(false)
-            .generate()
+            .parse_file()
             .expect("Generate Pages");
 
         let expected = "<h1>This is a test</h1>".to_string();
-        let mut actual = String::new();
 
-        let mut output_file = File::open(&html_file_name).expect("Open HTML File");
+        assert_eq!(Yaml::Null, actual.front_matter);
+        assert_eq!(expected, actual.contents.trim());
+    }
 
-        output_file.read_to_string(&mut actual).expect("Reading HTML File");
+    #[test]
+    fn it_parses_frontmatter_and_returns_a_page_object() {
+        let temp_dir = TempDir::new("parse-front-matter").expect("Temp Dir");
+        let md_file_name = temp_dir.path().join("test.md");
+        let html_file_name = temp_dir.path().join("test.html");
 
-        assert_eq!(expected, actual.trim());
+        let mut file = File::create(&md_file_name).expect("Markdown file create");
+
+        writeln!(file, "---\ntitle: My Page\ntags:\n  - one\n  - two\n---\n# This is a test!").expect("Write markdown");
+
+        let page = PageGenerator::new()
+            .set_input_file(md_file_name.to_str().expect("Input File"))
+            .set_output_file(html_file_name.to_str().expect("Output File"))
+            .set_wrap(true)
+            .parse_file()
+            .expect("Generate Page");
+
+        let mut btree_map = BTreeMap::new();
+        let tags = vec![Yaml::String("one".to_string()), Yaml::String("two".to_string())];
+
+        btree_map.insert(Yaml::String("title".to_string()), Yaml::String("My Page".to_string()));
+        btree_map.insert(Yaml::String("tags".to_string()), Yaml::Array(tags));
+
+        let expected_frontmatter = Yaml::Hash(btree_map);
+
+        let expected_html = "<h1>This is a test!</h1>".to_string();
+
+        assert_eq!(expected_frontmatter, page.front_matter);
+        assert_eq!(expected_html, page.contents.trim());
     }
 
     #[test]
@@ -134,43 +165,6 @@ mod test {
         page_generator.set_input_file(md_file_name.as_str())
                       .set_output_file(html_file_name.as_str());
 
-        page_generator.generate().expect("Generate Pages");
-    }
-
-    #[test]
-    fn it_wraps_generated_md_in_well_formed_html_skeleton() {
-        let temp_dir = TempDir::new("wrap-generated-html").expect("Temp Dir");
-        let md_file_name = temp_dir.path().join("test.md");
-        let html_file_name = temp_dir.path().join("test.html");
-
-        let mut file = File::create(&md_file_name).expect("Create Markdown File");
-
-        writeln!(file, "# This is a test\nAnd some more text here...").expect("Write Markdown");
-
-        PageGenerator::new()
-            .set_input_file(md_file_name.to_str().expect("Input File"))
-            .set_output_file(html_file_name.to_str().expect("Output File"))
-            .set_wrap(true)
-            .generate()
-            .expect("Generate Pages");
-
-        let mut actual = String::new();
-
-        let mut output_file = File::open(&html_file_name).expect("Open Output File");
-
-        output_file.read_to_string(&mut actual).expect("Read Output");
-
-        let expected = "<!DOCTYPE html>\n\
-                            <html>\n\
-                                <head>\n\
-                                    <title>Aluminum Page</title>\n\
-                                </head>\n\
-                                <body>\n\
-                                    <h1>This is a test</h1>\n\
-                                    <p>And some more text here...</p>\n\
-                                </body>\n\
-                            </html>";
-
-        assert_eq!(actual, expected);
+        page_generator.parse_file().expect("Generate Pages");
     }
 }
