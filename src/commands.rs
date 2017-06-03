@@ -1,16 +1,21 @@
+use super::generation::PageGenerator;
+use super::config::Config;
+
 use std::io;
 use std::io::{Read, Write};
 use std::fs;
 use std::fs::{DirBuilder, File};
 use std::path::Path;
 use std::error::Error;
-use super::generation::PageGenerator;
-use super::config::Config;
+use std::fs::OpenOptions;
+
 use hyper::server::{Request, Response, Server};
 use hyper::status::StatusCode;
 use hyper::uri::RequestUri;
 use hyper::method::Method;
+
 use walkdir::WalkDir;
+
 use pulldown_cmark::{Options, OPTION_ENABLE_TABLES, OPTION_ENABLE_FOOTNOTES};
 
 const DEFAULT_CONFIG_FILE: &'static str = "\
@@ -83,11 +88,19 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
         fs::create_dir_all(Path::new(&destination_file).parent().unwrap()).unwrap();
 
         if file_name.contains(".md") {
-            page_generator.set_input_file(file.path().to_str().expect("Couldn't convert for some reason"))
+            let parsed = page_generator.set_input_file(file.path().to_str().expect("Couldn't convert for some reason"))
                 .set_output_file(destination_file.as_str())
                 .set_wrap(true)
                 .set_parse_options(markdown_options.clone())
-                .generate()?;
+                .parse_file()?;
+
+            let mut output_file = OpenOptions::new()
+                .read(true)
+                .write(true)
+                .create(true)
+                .open(destination_file.as_str())?;
+
+            output_file.write_all(&parsed.contents.as_bytes())?;
         } else if file_name.contains(".html") {
             let output_file_name = format!("{}/{}", config.output_dir, file_name);
             let output_file_path = Path::new(&output_file_name);
