@@ -92,7 +92,8 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
                 .set_output_file(destination_file.as_str())
                 .set_wrap(true)
                 .set_parse_options(markdown_options.clone())
-                .parse_file()?;
+                .parse_file()?
+                .render_to_string()?;
 
             let mut output_file = OpenOptions::new()
                 .read(true)
@@ -100,7 +101,7 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
                 .create(true)
                 .open(destination_file.as_str())?;
 
-            output_file.write_all(&parsed.contents.as_bytes())?;
+            output_file.write_all(&parsed.as_bytes())?;
         } else if file_name.contains(".html") {
             let output_file_name = format!("{}/{}", config.output_dir, file_name);
             let output_file_path = Path::new(&output_file_name);
