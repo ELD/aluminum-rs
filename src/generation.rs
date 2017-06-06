@@ -16,13 +16,6 @@ lazy_static! {
     static ref FRONT_MATTER_REGEX: Regex = Regex::new(r"(?s)^(?:---)\s+(.*)\s+(?:---)\s+(.*)").unwrap();
 }
 
-pub struct Page {
-    pub front_matter: Yaml,
-    pub contents: String,
-    extension: String,
-    parse_options: Options,
-}
-
 pub struct PageGenerator {
     input_file: String,
     output_file: String,
@@ -88,11 +81,31 @@ impl Default for PageGenerator {
     }
 }
 
+pub struct Page {
+    pub front_matter: Yaml,
+    pub contents: String,
+    extension: String,
+    parse_options: Options,
+}
+
 impl Page {
     pub fn render_to_string(&self) -> Result<String, io::Error> {
         let template = ::liquid::parse(&self.contents, Default::default()).expect("Couldn't construct template");
 
         let mut context = Context::new();
+
+        match self.front_matter.as_hash() {
+            Some(hash) => {
+                for (key, value) in hash {
+                    context
+                        .set_val(
+                            key.as_str().unwrap_or(""),
+                            Self::load_from_yaml(&value).unwrap_or(::liquid::Value::Str("Invalid".to_string()))
+                        );
+                }
+            },
+            None => {},
+        }
 
         let mut html = template.render(&mut context).expect("Could not parse").unwrap_or(String::new());
 
@@ -111,6 +124,17 @@ impl Page {
         html::push_html(&mut parsed_html, parser);
 
         Ok(parsed_html)
+    }
+
+    fn load_from_yaml(yaml: &Yaml) -> Option<::liquid::Value> {
+        match *yaml {
+            Yaml::Real(ref string) |
+            Yaml::String(ref string) => Some(::liquid::Value::Str(string.clone())),
+            Yaml::Integer(integer) => Some(::liquid::Value::Num(integer as f32)),
+            Yaml::Boolean(bool) => Some(::liquid::Value::Bool(bool)),
+            Yaml::Array(ref array) => Some(::liquid::Value::Array(array.iter().filter_map(Self::load_from_yaml).collect())),
+            Yaml::BadValue | Yaml::Null | _ => None,
+        }
     }
 }
 
@@ -197,6 +221,70 @@ mod test {
             .expect("Generate page");
 
         let expected_html = "<h1>THIS IS A TEST!</h1>".to_string();
+
+        assert_eq!(expected_html, page.render_to_string().expect("Couldn't render").trim());
+    }
+
+    #[test]
+    fn it_injects_frontmatter_values() {
+        let temp_dir = TempDir::new("frontmatter-injection").expect("Temp Dir");
+        let md_file_name = temp_dir.path().join("test.md");
+        let html_file_name = temp_dir.path().join("test.html");
+
+        let mut file = File::create(&md_file_name).expect("Markdown file create");
+
+        let file_contents = r"---
+title: Test
+number: 5
+real: 2.4
+print_true: true
+null: ~
+---
+# The title of my page: {{ title }}
+
+An integer value: {{ number }}
+
+A 'real' value: {{ real }}
+
+{% if print_true %}
+This is the 'true' value
+{% endif %}";
+
+        writeln!(file, "{}", file_contents).expect("markdown file");
+
+        let page = PageGenerator::new()
+            .set_input_file(md_file_name.to_str().expect("Input file"))
+            .set_output_file(html_file_name.to_str().expect("Output file"))
+            .set_wrap(true)
+            .parse_file()
+            .expect("Generate Page");
+
+        let expected_html = r"<h1>The title of my page: Test</h1>
+<p>An integer value: 5</p>
+<p>A 'real' value: 2.4</p>
+<p>This is the 'true' value</p>".to_string();
+
+        assert_eq!(expected_html, page.render_to_string().expect("Couldn't render").trim());
+    }
+
+    #[test]
+    fn it_injects_complex_frontmatter_values() {
+        let temp_dir = TempDir::new("complex-frontmatter-injection").expect("Temp Dir");
+        let md_file_name = temp_dir.path().join("test.md");
+        let html_file_name = temp_dir.path().join("test.html");
+
+        let mut file = File::create(&md_file_name).expect("Markdown file create");
+
+        writeln!(file, "---\ntitle: Test\ntags:\n  - one\n  - two\n---\n# The title of my page: {{{{ title }}}}\n{{% for tag in tags %}}\n1. {{{{ tag }}}}\n{{% endfor %}}").expect("Writing markdown");
+
+        let page = PageGenerator::new()
+            .set_input_file(md_file_name.to_str().expect("Input file"))
+            .set_output_file(html_file_name.to_str().expect("Output file"))
+            .set_wrap(true)
+            .parse_file()
+            .expect("Generate Page");
+
+        let expected_html = "<h1>The title of my page: Test</h1>\n<ol>\n<li>\n<p>one</p>\n</li>\n<li>\n<p>two</p>\n</li>\n</ol>".to_string();
 
         assert_eq!(expected_html, page.render_to_string().expect("Couldn't render").trim());
     }
