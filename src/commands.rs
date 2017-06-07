@@ -90,7 +90,6 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
         if file_name.contains(".md") {
             let parsed = page_generator.set_input_file(file.path().to_str().expect("Couldn't convert for some reason"))
                 .set_output_file(destination_file.as_str())
-                .set_wrap(true)
                 .set_parse_options(markdown_options.clone())
                 .parse_file()?
                 .render_to_string()?;
