@@ -28,9 +28,21 @@ branches:
 
 jobs:
   include:
-    - stage: test
-      script: cargo test -j8
-    - stage: code coverage
-      script: bash ./ci/check_code_coverage.sh
-    - stage: release
-      script: cargo build -j8 --release
+  - stage: test
+    rust:
+    - stable
+    - beta
+    - nightly
+    script: cargo test -j8
+  - stage: code coverage
+    rust:
+    - stable
+    - beta
+    - nightly
+    script: bash ./ci/check_code_coverage.sh
+  - stage: release
+    rust:
+    - stable
+    - beta
+    - nightly
+    script: cargo build -j8 --release
