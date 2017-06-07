@@ -1,11 +1,10 @@
+language: rust
 sudo: false
-dist: trusty
 cache: cargo
-languag: rust
-rust:
-  - stable
-  - beta
-  - nightly
+
+branches:
+  only:
+  - master
 
 addons:
   apt:
@@ -21,10 +20,9 @@ jobs:
   include:
     - stage: test
       script: cargo test -j8
-      rust:
-        - stable
-        - beta
-        - nightly
+      rust: nightly
+      allow_failures:
+        rust: nightly
 
     - stage: code_coverage
       script: bash ./ci/check_code_coverage.sh
@@ -33,7 +31,3 @@ jobs:
     - stage: release
       script: cargo build -j8 --release
       rust: stable
-
-matrix:
-  allow_failures:
-  - rust: nightly
