@@ -1,5 +1,11 @@
 sudo: false
 dist: trusty
+cache: cargo
+languag: rust
+rust:
+  - stable
+  - beta
+  - nightly
 
 addons:
   apt:
@@ -10,12 +16,6 @@ addons:
       - cmake
       - gcc
       - binutils-dev
-
-languag: rust
-rust:
-  - stable
-  - beta
-  - nightly
 
 jobs:
   include:
@@ -33,3 +33,7 @@ jobs:
     - stage: release
       script: cargo build -j8 --release
       rust: stable
+
+matrix:
+  allow_failures:
+  - rust: nightly
