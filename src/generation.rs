@@ -20,7 +20,6 @@ pub struct PageGenerator {
     input_file: String,
     output_file: String,
     parse_options: Options,
-    wrap_html: bool,
 }
 
 impl PageGenerator {
@@ -35,11 +34,6 @@ impl PageGenerator {
 
     pub fn set_output_file<S: Into<String>>(&mut self, output_file: S) -> &mut Self {
         self.output_file = output_file.into();
-        self
-    }
-
-    pub fn set_wrap(&mut self, wrap: bool) -> &mut Self {
-        self.wrap_html = wrap;
         self
     }
 
@@ -76,7 +70,6 @@ impl Default for PageGenerator {
             input_file: String::new(),
             output_file: String::new(),
             parse_options: Options::empty(),
-            wrap_html: false,
         }
     }
 }
@@ -162,7 +155,6 @@ mod test {
         let actual = PageGenerator::new()
             .set_input_file(md_file_name.to_str().expect("Input File"))
             .set_output_file(html_file_name.to_str().expect("Output File"))
-            .set_wrap(false)
             .parse_file()
             .expect("Generate Pages");
 
@@ -185,7 +177,6 @@ mod test {
         let page = PageGenerator::new()
             .set_input_file(md_file_name.to_str().expect("Input File"))
             .set_output_file(html_file_name.to_str().expect("Output File"))
-            .set_wrap(true)
             .parse_file()
             .expect("Generate Page");
 
@@ -216,7 +207,6 @@ mod test {
         let page = PageGenerator::new()
             .set_input_file(md_file_name.to_str().expect("Input file"))
             .set_output_file(html_file_name.to_str().expect("Output file"))
-            .set_wrap(true)
             .parse_file()
             .expect("Generate page");
 
@@ -255,7 +245,6 @@ This is the 'true' value
         let page = PageGenerator::new()
             .set_input_file(md_file_name.to_str().expect("Input file"))
             .set_output_file(html_file_name.to_str().expect("Output file"))
-            .set_wrap(true)
             .parse_file()
             .expect("Generate Page");
 
@@ -280,7 +269,6 @@ This is the 'true' value
         let page = PageGenerator::new()
             .set_input_file(md_file_name.to_str().expect("Input file"))
             .set_output_file(html_file_name.to_str().expect("Output file"))
-            .set_wrap(true)
             .parse_file()
             .expect("Generate Page");
 
