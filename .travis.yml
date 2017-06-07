@@ -26,7 +26,11 @@ branches:
     - master
     - develop
 
-script:
-  - cargo test -j8
-
-after_success: bash ./ci/check_code_coverage.sh
+jobs:
+  include:
+  - stage: test
+    script: cargo test -j8
+  - stage: code coverage
+    script: bash ./ci/check_code_coverage.sh
+  - stage: release
+    script: cargo build -j8 --release
