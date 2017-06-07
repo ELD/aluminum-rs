@@ -11,6 +11,7 @@ addons:
       - gcc
       - binutils-dev
 
+languag: rust
 rust:
   - stable
   - beta
