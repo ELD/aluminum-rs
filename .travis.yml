@@ -31,12 +31,12 @@ matrix:
           - stable
           - beta
           - nightly
-      script: cargo test -j8
-    - stage: code coverage
-      rust:
-        - stable
-      script: bash ./ci/check_code_coverage.sh
-    - stage: release
-      rust:
-        - stable
-      script: cargo build -j8 --release
+        script: cargo test -j8
+      - stage: code coverage
+        rust:
+          - stable
+        script: bash ./ci/check_code_coverage.sh
+      - stage: release
+        rust:
+          - stable
+        script: cargo build -j8 --release
