@@ -17,17 +17,22 @@ addons:
       - binutils-dev
 
 jobs:
+  allow_failures:
+  - rust: nightly
   include:
-    - stage: test
+    - &test-all-rust-versions
+      stage: test
+      rust: stable
       script: cargo test -j8
+    - <<: *test-all-rust-versions
+      rust: beta
+      script: cargo test -j8
+    - <<: *test-all-rust-versions
       rust: nightly
-      allow_failures:
-        rust: nightly
-
+      script: cargo test -j8
     - stage: code_coverage
       script: bash ./ci/check_code_coverage.sh
       rust: stable
-
     - stage: release
       script: cargo build -j8 --release
       rust: stable
