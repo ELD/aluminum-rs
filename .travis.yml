@@ -1,20 +1,14 @@
 language: rust
-sudo: false
-cache: cargo
+sudo: required
+services:
+- docker
 
 branches:
   only:
   - master
 
-addons:
-  apt:
-    packages:
-      - libcurl4-openssl-dev
-      - libelf-dev
-      - libdw-dev
-      - cmake
-      - gcc
-      - binutils-dev
+before_install:
+- docker pull edattore/travis-rust
 
 jobs:
   allow_failures:
@@ -23,16 +17,16 @@ jobs:
     - &test-all-rust-versions
       stage: test
       rust: stable
-      script: cargo test -j8
+      script: docker run edattore/travis-cargo "cargo test"
     - <<: *test-all-rust-versions
       rust: beta
-      script: cargo test -j8
+      script: docker run edattore/travis-cargo "cargo test"
     - <<: *test-all-rust-versions
       rust: nightly
-      script: cargo test -j8
+      script: docker run edattore/travis-cargo "cargo test"
     - stage: code_coverage
-      script: bash ./ci/check_code_coverage.sh
+      script: docker run edattore/travis-cargo "bash ./ci/check_code_coverage.sh"
       rust: stable
     - stage: release
-      script: cargo build -j8 --release
+      script: docker run edattore/travis-cargo "cargo build -j8 --release"
       rust: stable
