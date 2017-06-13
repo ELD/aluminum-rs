@@ -29,5 +29,3 @@ WORKDIR /app
 RUN ~/.cargo/bin/cargo fetch
 
 RUN apt-get clean
-
-ENTRYPOINT ["/bin/bash"]
