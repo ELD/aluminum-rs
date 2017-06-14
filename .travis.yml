@@ -28,5 +28,5 @@ jobs:
       script: docker run edattore/travis-rust /bin/sh -c "bash ./ci/check_code_coverage.sh"
       rust: stable
     - stage: release
-      script: docker run edattore/travis-rust /bin/sh -c "cargo build -j8 --release"
+      script: docker run edattore/travis-rust /bin/sh -c "/root/.cargo/bin/cargo build -j8 --release"
       rust: stable
