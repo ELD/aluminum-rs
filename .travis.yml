@@ -15,18 +15,20 @@ jobs:
   - rust: nightly
   include:
     - &test-all-rust-versions
-      stage: test
+      stage: Test
       rust: stable
-      script: docker run edattore/travis-rust /bin/sh -c "/root/.cargo/bin/cargo test"
+      script: docker run --rm edattore/travis-rust /bin/sh -c "/root/.cargo/bin/cargo test"
     - <<: *test-all-rust-versions
       rust: beta
-      script: docker run edattore/travis-rust /bin/sh -c "/root/.cargo/bin/cargo test"
+      script: docker run --rm edattore/travis-rust /bin/sh -c "/root/.cargo/bin/cargo test"
     - <<: *test-all-rust-versions
       rust: nightly
       script: docker run edattore/travis-rust /bin/sh -c "/root/.cargo/bin/cargo test"
-    - stage: code_coverage
-      script: docker run edattore/travis-rust /bin/sh -c "bash ./ci/check_code_coverage.sh"
+    - stage: Code Coverage
+      script: docker run --rm edattore/travis-rust /bin/sh -c "bash ./ci/check_code_coverage.sh"
       rust: stable
     - stage: release
-      script: docker run edattore/travis-rust /bin/sh -c "/root/.cargo/bin/cargo build -j8 --release"
+      script: docker run --rm edattore/travis-rust /bin/sh -c "/root/.cargo/bin/cargo build -j8 --release"
       rust: stable
+    - stage: Experimental Volume Mounting
+      script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "ls /app"
