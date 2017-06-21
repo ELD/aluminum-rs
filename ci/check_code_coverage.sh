@@ -1,4 +1,5 @@
-#@IgnoreInspection BashAddShebang
+#!/usr/bin/env bash
+
 if [[ $TRAVIS_RUST_VERSION = 'stable' ]]; then
     wget https://github.com/SimonKagstrom/kcov/archive/master.zip
     unzip master.zip
