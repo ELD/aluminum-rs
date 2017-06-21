@@ -2,36 +2,43 @@ language: rust
 sudo: required
 services:
 - docker
-
 branches:
   only:
   - master
-
 before_install:
 - docker pull edattore/travis-rust
-
 jobs:
   allow_failures:
   - rust: nightly
   include:
-    - &test-all-rust-versions
-      stage: Test
-      rust: stable
-      script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "/root/.cargo/bin/rustup run $TRAVIS_RUST_VERSION cargo test"
-    - <<: *test-all-rust-versions
-      rust: beta
-      script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "/root/.cargo/bin/rustup run $TRAVIS_RUST_VERSION cargo test"
-      env:
-    - <<: *test-all-rust-versions
-      rust: nightly
-      script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "/root/.cargo/bin/rustup run $TRAVIS_RUST_VERSION cargo test"
-      env:
-    - stage: Code Coverage
-      script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "./ci/check_code_coverage.sh"
-      rust: stable
-      env:
-    - stage: release
-      script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "/root/.cargo/bin/rustup run $TRAVIS_RUST_VERSION cargo build --release -j8"
-      rust: stable
-    - stage: Experimental Volume Mounting
-      script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "ls /app"
+  - stage: Test
+    rust: stable
+    script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "/root/.cargo/bin/rustup
+      run $TRAVIS_RUST_VERSION cargo test"
+  - stage: Test
+    rust: beta
+    script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "/root/.cargo/bin/rustup
+      run $TRAVIS_RUST_VERSION cargo test"
+    env:
+  - stage: Test
+    rust: nightly
+    script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "/root/.cargo/bin/rustup
+      run $TRAVIS_RUST_VERSION cargo test"
+    env:
+  - stage: Code Coverage
+    script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "./ci/check_code_coverage.sh"
+    rust: stable
+    env:
+  - stage: release
+    script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "/root/.cargo/bin/rustup
+      run $TRAVIS_RUST_VERSION cargo build --release -j8"
+    rust: stable
+  - stage: Experimental Volume Mounting
+    script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "ls /app"
+deploy:
+  provider: releases
+  api_key:
+    secure: Gk4tvzTi2ZjRTza6ckJNU4jyyQJyIDB3sbyRdkdG7ayjlpAABwBWgh0l3bfo8xKLTsIEOB7PsKYm9Ta1GS6UcQD4HSJSKDjrBf4nvcxIarLILrSIPF7LuA12liMZ0ktjc1PnbAXqtoCfIgVncpgkJpeH0cOF65Mda4dd3gjvfzUWwWNPweUEvlSmPvluDGsoYm5g1lX6h/ii08cVKMF51sxcNix1umKTh9CIfcwEqyZc0lScD8BtgPQUJ3BeHOjIKsXbKfQzS4p4EW9z3erg/hAclcIRRwyrLwJbmvL8gbCJ8mGqyVwO6GwKWSJMKj3OwrUKvw2EeBHNGISKAtWhxEvQpqcPxcJhZKMjrZA+NzpSFLYMzVYFwrpnlP7BjZVqEgNZjxMQDJfBxnSJWrLsTWiybCHRi/rhfpMlnTEzUAfr5Tu/L662NR4I2VS0cv71E8w19hfaTcZEdP1C8UdFSU1C4vXafSMOArs3pyKip2H0+6uRVhqtEEWgLOZXVaehz89Gbq2UABpo3tcZ3eu1zBWlNpdfK5mH6tdPUUgBMKmmvWNFXlh/4MH5PtPn53XP/l3L+OP6kEqgtOmV4ZqVNUuez0CTetH79tbIKjBvsd+X1Cq77ETLmNHaafk/LcDB6q4kxZV6tjcF4NOVs8eFPKSlyy+86bFlQGgUfMuQs9M=
+  file: target/release/aluminum
+  on:
+    repo: ELD/Aluminum-rs
