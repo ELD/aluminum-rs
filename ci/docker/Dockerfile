@@ -33,7 +33,9 @@ RUN git clone https://github.com/ELD/Aluminum-rs /app
 
 # Set workdir
 WORKDIR /app
-RUN ~/.cargo/bin/cargo fetch
+RUN ~/.cargo/bin/rustup run stable cargo fetch
+RUN ~/.cargo/bin/rustup run beta cargo fetch
+RUN ~/.cargo/bin/rustup run nightly cargo fetch
 
 # Cleanup
 RUN rm -rf /app
