@@ -17,18 +17,21 @@ jobs:
     - &test-all-rust-versions
       stage: Test
       rust: stable
-      script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "/root/.cargo/bin/cargo test"
+      script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "/root/.cargo/bin/rustup run $RUST_VERSION cargo test"
     - <<: *test-all-rust-versions
       rust: beta
-      script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "/root/.cargo/bin/cargo test"
+      script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "/root/.cargo/bin/rustup run $RUST_VERSION cargo test"
+      env:
     - <<: *test-all-rust-versions
       rust: nightly
-      script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "/root/.cargo/bin/cargo test"
+      script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "/root/.cargo/bin/rustup run $RUST_VERSION cargo test"
+      env:
     - stage: Code Coverage
       script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "./ci/check_code_coverage.sh"
       rust: stable
+      env:
     - stage: release
-      script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "/root/.cargo/bin/cargo build -j8 --release"
+      script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "/root/.cargo/bin/rustup run $RUST_VERSION cargo build --release -j8"
       rust: stable
     - stage: Experimental Volume Mounting
       script: docker run --rm -v $(pwd):/app edattore/travis-rust /bin/sh -c "ls /app"

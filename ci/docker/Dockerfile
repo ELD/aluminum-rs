@@ -25,6 +25,8 @@ RUN curl -LOko master.zip https://github.com/SimonKagstrom/kcov/archive/master.z
 # TODO: Install nightly and beta
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
 RUN echo "source ~/.cargo/env" >> ~/.bashrc
+RUN ~/.cargo/bin/rustup install beta
+RUN ~/.cargo/bin/rustup install nightly
 
 # Clone Aluminum-rs
 RUN git clone https://github.com/ELD/Aluminum-rs /app
