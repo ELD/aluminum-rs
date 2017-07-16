@@ -106,6 +106,11 @@ pub fn build_project(config: &Config) -> Result<(), io::Error> {
             let output_file_path = Path::new(&output_file_name);
 
             fs::copy(file.path(), output_file_path).unwrap();
+        } else {
+            let output_file_name = format!("{}/{}", config.output_dir, file_name);
+            let output_file_path = Path::new(&output_file_name);
+
+            fs::copy(file.path(), output_file_path).unwrap();
         }
     }
 
