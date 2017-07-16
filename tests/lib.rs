@@ -167,6 +167,11 @@ fn it_ignores_files_with_underscores_when_building_the_project() {
 }
 
 #[test]
+fn it_copies_all_files_regardless_of_extension() {
+    run_build_tests("all-files", vec![]).expect("Failed to copy all files");
+}
+
+#[test]
 fn it_builds_a_project_with_footnote_and_table_support() {
     run_build_tests("enhanced-project", vec!["tables".to_string(), "footnotes".to_string()]).expect("Failed to build a project with footnote and table support");
 }
