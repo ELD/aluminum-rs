@@ -9,10 +9,10 @@ use clap::{App, Arg, AppSettings, SubCommand};
 use aluminum::commands;
 use aluminum::config::Config;
 
-const VERSION_NUMBER: &'static str = "0.1.0";
+const VERSION_NUMBER: &'static str = "0.3.0";
 
 fn main() {
-    let matches = App::new("Rukyll")
+    let matches = App::new("Aluminum")
         .setting(AppSettings::ArgRequiredElseHelp)
         .version(VERSION_NUMBER)
         .about("Static site generator")
