@@ -26,9 +26,7 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
 RUN echo "source ~/.cargo/env" >> ~/.bashrc
 RUN ~/.cargo/bin/rustup install beta
 RUN ~/.cargo/bin/rustup install nightly
-
-# Add the macOS target
-RUN ~/.cargo/bin/rustup target add x86_64-apple-darwin
+RUN ~/.cargo/bin/rustup cargo install cargo-tarpaulin -j8
 
 # Clone Aluminum-rs
 RUN git clone https://github.com/ELD/Aluminum-rs /app
