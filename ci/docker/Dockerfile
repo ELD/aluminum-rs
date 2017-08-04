@@ -1,12 +1,13 @@
 FROM bitnami/minideb:jessie
 
-MAINTAINER Eric Dattore
+LABEL maintainer_name="Eric Dattore"
+LABEL maintainer_email="edattore@gmail.com"
 
 # Install dependencies for kcov
-RUN apt-get update
 RUN apt-get update && \
-    apt-get install -y zlib1g-dev libcurl4-openssl-dev libelf-dev libdw-dev \
-    cmake cmake-data g++ binutils-dev libiberty-dev python-minimal git curl unzip pkg-config
+    apt-get install --no-install-recommends -y zlib1g-dev libcurl4-openssl-dev libssl-dev libelf-dev libdw-dev \
+    cmake cmake-data make g++ binutils-dev libiberty-dev python-minimal git curl ca-certificates unzip pkg-config && \
+    rm -rf /var/lib/apt/lists/*
 
 # Grab kcov
 RUN curl -LOko master.zip https://github.com/SimonKagstrom/kcov/archive/master.zip \
@@ -26,7 +27,7 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
 RUN echo "source ~/.cargo/env" >> ~/.bashrc
 RUN ~/.cargo/bin/rustup install beta
 RUN ~/.cargo/bin/rustup install nightly
-RUN ~/.cargo/bin/rustup cargo install cargo-tarpaulin -j8
+RUN ~/.cargo/bin/rustup run stable cargo install cargo-tarpaulin -j8
 
 # Clone Aluminum-rs
 RUN git clone https://github.com/ELD/Aluminum-rs /app
